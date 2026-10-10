@@ -42,6 +42,8 @@ case "${1:-preflight}" in
     if [[ ! -e "$FUSE_BUFFER_KEY" ]]; then
       solana-keygen new --silent --no-bip39-passphrase --outfile "$FUSE_BUFFER_KEY"
     fi
+    # Sequential, bounded requests avoid the CLI's concurrent-upload rate limit.
+    cargo run --locked -p fuse-escrow --features devnet --example localnet -- upload-buffer
     # Persistent ignored buffer identity makes an interrupted write resumable,
     # and prevents CLI failure output containing a generated recovery phrase.
     cli program deploy "$FUSE_BINARY" --program-id "$FUSE_PROGRAM_KEY" \
@@ -56,12 +58,30 @@ case "${1:-preflight}" in
     guard
     cargo run --locked -p fuse-escrow --features devnet --example localnet
     ;;
+  upload-buffer)
+    guard
+    cargo run --locked -p fuse-escrow --features devnet --example localnet -- upload-buffer
+    ;;
   check)
     cargo check --locked -p fuse-escrow --features devnet --all-targets
+    ;;
+  verify)
+    # Public receipts only: no deployment or participant keys are needed.
+    python3 scripts/verify_devnet.py
+    ;;
+  fund-test)
+    guard
+    test "$#" -eq 2 || { echo 'Supply only a disposable test public address.' >&2; exit 2; }
+    # Explicit developer/test command; never invoked by the application.
+    cli transfer "$2" 0.005 --allow-unfunded-recipient
+    ;;
+  prepare-browser)
+    guard
+    cargo run --locked -p fuse-escrow --features devnet --example localnet -- prepare-browser
     ;;
   test)
     export FUSE_PROGRAM_SO="$FUSE_BINARY"
     cargo test --locked -p fuse-escrow --features devnet --test escrow -- --test-threads=1
     ;;
-  *) echo "Usage: $0 {build|preflight|deploy|scenarios|check|test}" >&2; exit 2 ;;
+  *) echo "Usage: $0 {build|preflight|deploy|upload-buffer|scenarios|prepare-browser|fund-test PUBLIC_ADDRESS|verify|check|test}" >&2; exit 2 ;;
 esac

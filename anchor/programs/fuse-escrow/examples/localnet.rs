@@ -1,5 +1,5 @@
-//! Real, confirmed local-validator transactions using Anchor's generated Rust interface.
-//! All private test identities live in memory and disappear when this process exits.
+//! Confirmed Localnet or Devnet transactions using Anchor's generated Rust interface.
+//! Test identities are ephemeral; Devnet uses only the owner's dedicated fee wallet.
 use anchor_lang::{AccountDeserialize, InstructionData, ToAccountMetas};
 use base64::{engine::general_purpose::STANDARD, Engine};
 use fuse_escrow::errors::EscrowError;
@@ -27,7 +27,10 @@ use std::{
 };
 
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
+#[cfg(not(feature = "devnet"))]
 const RPC: &str = "http://127.0.0.1:8899";
+#[cfg(feature = "devnet")]
+const RPC: &str = "https://api.devnet.solana.com";
 const DECIMALS: u8 = 6;
 const UNIT: u64 = 1_000_000;
 
@@ -39,13 +42,45 @@ struct LocalClient {
 
 impl LocalClient {
     fn rpc(&self, method: &str, params: Value) -> Result<Value> {
-        let response: Value = self
-            .http
-            .post(RPC)
-            .json(&json!({"jsonrpc":"2.0", "id":1, "method":method, "params":params}))
-            .send()?
-            .error_for_status()?
-            .json()?;
+        let mut attempt = 0;
+        let response: Value = loop {
+            if cfg!(feature = "devnet") {
+                thread::sleep(Duration::from_millis(400));
+            }
+            let response = self
+                .http
+                .post(RPC)
+                .json(&json!({"jsonrpc":"2.0", "id":1, "method":method, "params":params}))
+                .send();
+            let response = match response {
+                Ok(response) => response,
+                Err(error) if cfg!(feature = "devnet") && attempt < 3 => {
+                    attempt += 1;
+                    println!("Transient Devnet RPC transport failure for {method}; retrying the same request ({attempt}/3).");
+                    thread::sleep(Duration::from_secs(5));
+                    let _ = error;
+                    continue;
+                }
+                Err(error) => return Err(format!("{method}: {error}").into()),
+            };
+            if response.status().as_u16() == 429 && attempt < 3 {
+                attempt += 1;
+                let delay = response
+                    .headers()
+                    .get("retry-after")
+                    .and_then(|h| h.to_str().ok())
+                    .and_then(|h| h.parse::<u64>().ok())
+                    .unwrap_or(10)
+                    .clamp(1, 30);
+                println!("Public Devnet RPC limited {method}; respecting {delay}s backoff ({attempt}/3).");
+                thread::sleep(Duration::from_secs(delay));
+                continue;
+            }
+            break response
+                .error_for_status()
+                .map_err(|e| format!("{method}: {e}"))?
+                .json()?;
+        };
         if let Some(error) = response.get("error") {
             return Err(format!("{method}: {error}").into());
         }
@@ -111,14 +146,22 @@ impl LocalClient {
             {
                 return Ok(status);
             }
-            if start.elapsed() > Duration::from_secs(35) {
+            if start.elapsed() > Duration::from_secs(if cfg!(feature = "devnet") { 60 } else { 35 })
+            {
                 return Err(format!("Confirmation timed out: {signature}").into());
             }
-            thread::sleep(Duration::from_millis(200));
+            thread::sleep(Duration::from_millis(if cfg!(feature = "devnet") {
+                700
+            } else {
+                200
+            }));
         }
     }
 
     fn airdrop(&mut self, wallet: &Keypair) -> Result<()> {
+        if cfg!(feature = "devnet") {
+            return Err("No automatic public-network faucet requests are permitted".into());
+        }
         let signature = self
             .rpc(
                 "requestAirdrop",
@@ -356,19 +399,229 @@ fn terms(identifier: u64, deadline: i64, venue: Pubkey, instructor: Pubkey) -> C
     }
 }
 
+// The CLI uploads many writes concurrently, which can exhaust the free public
+// RPC limit. Resume only differing chunks sequentially using the SDK's actual
+// loader instruction; the normal CLI still performs the final deployment.
+#[allow(deprecated)]
+fn upload_devnet_buffer(client: &mut LocalClient) -> Result<()> {
+    if !cfg!(feature = "devnet") {
+        return Err("Buffer upload requires the Devnet build".into());
+    }
+    use solana_sdk::bpf_loader_upgradeable as loader;
+    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .unwrap()
+        .parent()
+        .unwrap()
+        .to_path_buf();
+    let payer = solana_sdk::signature::read_keypair_file(
+        PathBuf::from(std::env::var("HOME")?).join(".config/solana/fuse-devnet.json"),
+    )
+    .map_err(|_| "Dedicated Devnet wallet unavailable")?;
+    let buffer =
+        solana_sdk::signature::read_keypair_file(root.join(".wallets/devnet/buffer-keypair.json"))
+            .map_err(|_| "Existing deployment buffer key unavailable")?;
+    let bytes = fs::read(root.join("target/devnet/fuse_escrow.so"))?;
+    let exists = client.rpc(
+        "getAccountInfo",
+        json!([buffer.pubkey().to_string(), {"encoding":"base64", "commitment":"confirmed"}]),
+    )?;
+    if exists["value"].is_null() {
+        let rent = client
+            .rpc(
+                "getMinimumBalanceForRentExemption",
+                json!([loader::UpgradeableLoaderState::size_of_buffer(bytes.len())]),
+            )?
+            .as_u64()
+            .ok_or("Invalid buffer rent")?;
+        client.send(
+            "Initialize dedicated deployment buffer",
+            loader::create_buffer(
+                &payer.pubkey(),
+                &buffer.pubkey(),
+                &payer.pubkey(),
+                rent,
+                bytes.len(),
+            )?,
+            &payer,
+            &[&buffer],
+            None,
+        )?;
+    }
+    let current = client.data(&buffer.pubkey(), Some(loader::ID))?;
+    let state: loader::UpgradeableLoaderState = bincode::deserialize(&current)?;
+    match state {
+        loader::UpgradeableLoaderState::Buffer {
+            authority_address: Some(authority),
+        } if authority == payer.pubkey() => (),
+        _ => return Err("Wrong deployment-buffer authority".into()),
+    }
+    let offset = loader::UpgradeableLoaderState::size_of_buffer_metadata();
+    assert_eq!(current.len(), bytes.len() + offset);
+    let missing: Vec<_> = bytes
+        .chunks(900)
+        .enumerate()
+        .filter(|(index, chunk)| {
+            let start = index * 900;
+            current[offset + start..offset + start + chunk.len()] != **chunk
+        })
+        .collect();
+    for batch in missing.chunks(6) {
+        let latest = client.rpc("getLatestBlockhash", json!([{"commitment":"confirmed"}]))?;
+        let blockhash = Hash::from_str(
+            latest["value"]["blockhash"]
+                .as_str()
+                .ok_or("Missing blockhash")?,
+        )?;
+        let mut signatures = vec![];
+        for (index, chunk) in batch {
+            let ix = loader::write(
+                &buffer.pubkey(),
+                &payer.pubkey(),
+                (index * 900) as u32,
+                chunk.to_vec(),
+            );
+            let tx = Transaction::new_signed_with_payer(
+                &[ix],
+                Some(&payer.pubkey()),
+                &[&payer],
+                blockhash,
+            );
+            let wire = bincode::serialize(&tx)?;
+            assert!(wire.len() <= 1232, "Loader write exceeds packet size");
+            let expected = tx.signatures[0].to_string();
+            let submitted = client.rpc("sendTransaction", json!([STANDARD.encode(wire), {"encoding":"base64", "skipPreflight":false, "preflightCommitment":"confirmed", "maxRetries":3}]))?;
+            assert_eq!(submitted.as_str(), Some(expected.as_str()));
+            signatures.push(expected);
+        }
+        let started = Instant::now();
+        loop {
+            let statuses = client.rpc(
+                "getSignatureStatuses",
+                json!([signatures, {"searchTransactionHistory":true}]),
+            )?;
+            let values = statuses["value"]
+                .as_array()
+                .ok_or("Missing confirmation statuses")?;
+            for status in values {
+                assert!(status["err"].is_null(), "Buffer write failed: {status}");
+            }
+            if values.iter().all(|status| {
+                !status.is_null()
+                    && matches!(
+                        status["confirmationStatus"].as_str(),
+                        Some("confirmed" | "finalized")
+                    )
+            }) {
+                break;
+            }
+            if started.elapsed() > Duration::from_secs(60) {
+                return Err(
+                    "Buffer batch confirmation timed out; resume after checking state".into(),
+                );
+            }
+            thread::sleep(Duration::from_millis(900));
+        }
+        println!(
+            "Confirmed paced buffer batch through chunk {}: {}",
+            batch.last().unwrap().0,
+            signatures.last().unwrap()
+        );
+    }
+    let written = missing.len();
+    assert_eq!(
+        &client.data(&buffer.pubkey(), Some(loader::ID))?[offset..],
+        bytes
+    );
+    println!("Verified complete buffer byte-for-byte; {written} missing chunks written.");
+    Ok(())
+}
+
+fn prepare_browser_campaign(
+    client: &mut LocalClient,
+    organizer: &Keypair,
+    venue: &Keypair,
+    instructor: &Keypair,
+    attendee: &Keypair,
+    mint: Pubkey,
+    attendee_token: Pubkey,
+) -> Result<Booking> {
+    let ready = Booking::new(organizer.pubkey(), 3);
+    let deadline = client.clock()?.unix_timestamp
+        + if cfg!(feature = "devnet") {
+            604_800
+        } else {
+            86_400
+        };
+    client.send(
+        "Prepare browser workshop",
+        vec![ready.create(
+            organizer.pubkey(),
+            mint,
+            terms(3, deadline, venue.pubkey(), instructor.pubkey()),
+        )],
+        organizer,
+        &[],
+        None,
+    )?;
+    client.send(
+        "Fund browser workshop",
+        vec![ready.deposit(attendee.pubkey(), attendee_token, mint, 10)],
+        attendee,
+        &[],
+        None,
+    )?;
+    client.send(
+        "Approve browser venue",
+        vec![ready.approve(venue.pubkey(), SupplierRole::Venue)],
+        venue,
+        &[],
+        None,
+    )?;
+    client.send(
+        "Approve browser instructor",
+        vec![ready.approve(instructor.pubkey(), SupplierRole::Instructor)],
+        instructor,
+        &[],
+        None,
+    )?;
+    assert_eq!(
+        client.campaign(&ready.address)?.status,
+        CampaignStatus::Open
+    );
+    assert_eq!(client.balance(&ready.vault)?, 200 * UNIT);
+    Ok(ready)
+}
+
 fn main() -> Result<()> {
     let mut client = LocalClient {
         http: reqwest::blocking::Client::builder()
-            .timeout(Duration::from_secs(10))
+            .timeout(Duration::from_secs(20))
             .build()?,
         nonce: 0,
         transactions: vec![],
     };
+    let genesis = client.rpc("getGenesisHash", json!([]))?;
+    if cfg!(feature = "devnet") {
+        assert_eq!(
+            genesis, "EtWTRABZaYq6iMfeYKouRu166VU2xqa1wcaWoxPkrZBG",
+            "Wrong public cluster"
+        );
+    } else {
+        assert!(
+            !["EtWTR", "5eykt", "4uhc"]
+                .iter()
+                .any(|prefix| genesis.as_str().unwrap().starts_with(prefix)),
+            "Localnet endpoint reports a public cluster"
+        );
+    }
+    if std::env::args().nth(1).as_deref() == Some("upload-buffer") {
+        return upload_devnet_buffer(&mut client);
+    }
     let program = client.account(&fuse_escrow::ID)?;
     assert_eq!(program["executable"], true, "FUSE program is not deployed");
-    let genesis = client.rpc("getGenesisHash", json!([]))?;
     println!(
-        "Real local validator: {RPC}\nProgram: {}\nGenesis: {genesis}",
+        "Real test-network validator: {RPC}\nProgram: {}\nGenesis: {genesis}",
         fuse_escrow::ID
     );
     let organizer = Keypair::new();
@@ -376,8 +629,40 @@ fn main() -> Result<()> {
     let instructor = Keypair::new();
     let attendee = Keypair::new();
     let caller = Keypair::new();
-    for wallet in [&organizer, &venue, &instructor, &attendee, &caller] {
-        client.airdrop(wallet)?;
+    if cfg!(feature = "devnet") {
+        let wallet_path =
+            PathBuf::from(std::env::var("HOME")?).join(".config/solana/fuse-devnet.json");
+        let deployer = solana_sdk::signature::read_keypair_file(wallet_path)
+            .map_err(|_| "Cannot load the owner-created dedicated Devnet wallet")?;
+        let balance = client.rpc(
+            "getBalance",
+            json!([deployer.pubkey().to_string(), {"commitment":"confirmed"}]),
+        )?["value"]
+            .as_u64()
+            .ok_or("Invalid SOL balance")?;
+        if balance < 150_000_000 {
+            return Err(format!(
+                "STOP: add {} lamports of Devnet SOL manually; no faucet requested",
+                150_000_000 - balance
+            )
+            .into());
+        }
+        client.send(
+            "Fund five disposable test signers with 0.02 Devnet SOL each",
+            [&organizer, &venue, &instructor, &attendee, &caller]
+                .iter()
+                .map(|wallet| {
+                    system_instruction::transfer(&deployer.pubkey(), &wallet.pubkey(), 20_000_000)
+                })
+                .collect(),
+            &deployer,
+            &[],
+            None,
+        )?;
+    } else {
+        for wallet in [&organizer, &venue, &instructor, &attendee, &caller] {
+            client.airdrop(wallet)?;
+        }
     }
     let mint = Keypair::new();
     let rent = client
@@ -385,7 +670,7 @@ fn main() -> Result<()> {
         .as_u64()
         .ok_or("Invalid mint rent")?;
     client.send(
-        "Create six-decimal local test mint",
+        "Create six-decimal valueless FUSE demonstration mint",
         vec![
             system_instruction::create_account(
                 &organizer.pubkey(),
@@ -428,7 +713,7 @@ fn main() -> Result<()> {
         "Create instructor token account",
     )?;
     client.send(
-        "Fund attendee with 1000 local test tokens",
+        "Fund attendee with 1000 valueless test tokens",
         vec![spl_token::instruction::mint_to(
             &spl_token::ID,
             &mint.pubkey(),
@@ -442,6 +727,33 @@ fn main() -> Result<()> {
         None,
     )?;
 
+    if cfg!(feature = "devnet") && std::env::args().nth(1).as_deref() == Some("prepare-browser") {
+        let ready = prepare_browser_campaign(
+            &mut client,
+            &organizer,
+            &venue,
+            &instructor,
+            &attendee,
+            mint.pubkey(),
+            attendee_token,
+        )?;
+        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .unwrap()
+            .parent()
+            .unwrap()
+            .parent()
+            .unwrap()
+            .join("docs/devnet-recording-fixture.json");
+        let receipt = json!({"rpc":RPC,"programId":fuse_escrow::ID.to_string(),"genesisHash":genesis,"campaign":ready.address.to_string(),"mint":mint.pubkey().to_string(),"vault":ready.vault.to_string(),"venueToken":venue_token.to_string(),"instructorToken":instructor_token.to_string(),"deadline":client.campaign(&ready.address)?.deadline,"vaultBaseUnits":200*UNIT,"decimals":DECIMALS,"statusAtPreparation":"Open; fully funded and both suppliers approved","transactions":client.transactions});
+        fs::write(
+            &path,
+            format!("{}\n", serde_json::to_string_pretty(&receipt)?),
+        )?;
+        println!("Fresh real Devnet recording campaign: {}\nPublic receipt: {}\nPrivate test keys discarded on exit.", ready.address, path.display());
+        return Ok(());
+    }
+
     let success = Booking::new(organizer.pubkey(), 1);
     println!(
         "A campaign: {}; vault: {}; mint: {}",
@@ -449,7 +761,8 @@ fn main() -> Result<()> {
         success.vault,
         mint.pubkey()
     );
-    let deadline = client.clock()?.unix_timestamp + 600;
+    let deadline =
+        client.clock()?.unix_timestamp + if cfg!(feature = "devnet") { 1800 } else { 600 };
     client.send(
         "A: Create successful workshop",
         vec![success.create(
@@ -568,7 +881,8 @@ fn main() -> Result<()> {
 
     let expiry = Booking::new(organizer.pubkey(), 2);
     println!("B campaign: {}; vault: {}", expiry.address, expiry.vault);
-    let expiry_deadline = client.clock()?.unix_timestamp + 15;
+    let expiry_deadline =
+        client.clock()?.unix_timestamp + if cfg!(feature = "devnet") { 90 } else { 15 };
     client.send(
         "B: Create short-deadline workshop",
         vec![expiry.create(
@@ -590,16 +904,21 @@ fn main() -> Result<()> {
     )?;
     assert_eq!(client.balance(&expiry.vault)?, 40 * UNIT);
     assert_eq!(client.balance(&attendee_token)?, before - 40 * UNIT);
-    println!("Waiting for validator Clock to reach {expiry_deadline} (bounded 45 seconds)");
+    let wait_limit = if cfg!(feature = "devnet") { 180 } else { 45 };
+    println!("Waiting for actual validator Clock to reach {expiry_deadline} (bounded {wait_limit} seconds; no clock manipulation)");
     let wait = Instant::now();
     loop {
         if client.clock()?.unix_timestamp >= expiry_deadline {
             break;
         }
-        if wait.elapsed() > Duration::from_secs(45) {
+        if wait.elapsed() > Duration::from_secs(wait_limit) {
             return Err("Validator Clock did not advance to expiry".into());
         }
-        thread::sleep(Duration::from_millis(250));
+        thread::sleep(Duration::from_millis(if cfg!(feature = "devnet") {
+            1500
+        } else {
+            250
+        }));
     }
     let expired_at = client.clock()?.unix_timestamp;
     client.send(
@@ -656,72 +975,51 @@ fn main() -> Result<()> {
     )?;
     println!("B VERIFIED: attendee restored to 800, vault=0, contribution.refunded=true");
 
-    // A third open campaign supports browser activation by ANY authentic wallet.
-    let ready = Booking::new(organizer.pubkey(), 3);
-    client.send(
-        "Prepare browser workshop",
-        vec![ready.create(
-            organizer.pubkey(),
-            mint.pubkey(),
-            terms(
-                3,
-                client.clock()?.unix_timestamp + 86_400,
-                venue.pubkey(),
-                instructor.pubkey(),
-            ),
-        )],
+    // A third open campaign supports browser activation by any authentic wallet.
+    let ready = prepare_browser_campaign(
+        &mut client,
         &organizer,
-        &[],
-        None,
-    )?;
-    client.send(
-        "Fund browser workshop",
-        vec![ready.deposit(attendee.pubkey(), attendee_token, mint.pubkey(), 10)],
-        &attendee,
-        &[],
-        None,
-    )?;
-    client.send(
-        "Approve browser venue",
-        vec![ready.approve(venue.pubkey(), SupplierRole::Venue)],
         &venue,
-        &[],
-        None,
-    )?;
-    client.send(
-        "Approve browser instructor",
-        vec![ready.approve(instructor.pubkey(), SupplierRole::Instructor)],
         &instructor,
-        &[],
-        None,
+        &attendee,
+        mint.pubkey(),
+        attendee_token,
     )?;
-    assert_eq!(
-        client.campaign(&ready.address)?.status,
-        CampaignStatus::Open
-    );
-    assert_eq!(client.balance(&ready.vault)?, 200 * UNIT);
 
     let receipt = json!({"rpc":RPC,"programId":fuse_escrow::ID.to_string(),"genesisHash":genesis,
         "mint":mint.pubkey().to_string(),"decimals":DECIMALS,
         "organizer":organizer.pubkey().to_string(),"venue":venue.pubkey().to_string(),"instructor":instructor.pubkey().to_string(),
-        "attendee":attendee.pubkey().to_string(),"venueToken":venue_token.to_string(),"instructorToken":instructor_token.to_string(),
+        "attendee":attendee.pubkey().to_string(),"attendeeToken":attendee_token.to_string(),"venueToken":venue_token.to_string(),"instructorToken":instructor_token.to_string(),
         "success":{"campaign":success.address.to_string(),"vault":success.vault.to_string(),"activationSignature":activated,
             "venueBaseUnits":80*UNIT,"instructorBaseUnits":120*UNIT,"vaultBaseUnits":0,"status":"Activated"},
         "expiry":{"campaign":expiry.address.to_string(),"vault":expiry.vault.to_string(),"refundSignature":refunded,
-            "refundBaseUnits":40*UNIT,"expiredAt":expired_at,"deadline":expiry_deadline,"status":"FullyRefunded"},
+            "refundBaseUnits":40*UNIT,"contribution":contribution_address.to_string(),"contributorAfterRefundBaseUnits":before,"expiredAt":expired_at,"deadline":expiry_deadline,"status":"FullyRefunded"},
         "browserCampaign":ready.address.to_string(),"transactions":client.transactions});
-    let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .parent()
         .unwrap()
         .parent()
         .unwrap()
-        .join("localnet");
+        .to_path_buf();
+    let path = if cfg!(feature = "devnet") {
+        root.parent().unwrap().join("docs")
+    } else {
+        root.join("localnet")
+    };
     fs::create_dir_all(&path)?;
     fs::write(
-        path.join("receipt.json"),
+        path.join(if cfg!(feature = "devnet") {
+            "devnet-proof.json"
+        } else {
+            "receipt.json"
+        }),
         format!("{}\n", serde_json::to_string_pretty(&receipt)?),
     )?;
-    println!("ALL LOCAL VALIDATOR CHECKS PASSED\nPublic evidence: anchor/localnet/receipt.json\nBrowser campaign: {}",ready.address);
+    println!(
+        "ALL REAL TEST-NETWORK CHECKS PASSED\nPublic evidence: {}\nBrowser campaign: {}",
+        path.display(),
+        ready.address
+    );
     println!("Private fixture keys were never written to disk. A browser wallet must sign its own actions.");
     Ok(())
 }
