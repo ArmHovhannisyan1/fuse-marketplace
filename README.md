@@ -11,11 +11,16 @@
 ---
 
 > **Project status:** The original seven-page marketplace remains an interactive
-> simulation. The Anchor escrow now executes real signed transactions on a local
-> Solana validator; `/onchain-demo` provides a separate RPC-backed wallet experience.
+> simulation. The Anchor escrow executes real signed transactions on **Solana Devnet**
+> and a local validator; `/onchain-demo` provides a separate RPC-backed wallet experience.
 > **Marketplace: Interactive prototype — simulated funds. No real transactions.**
-> **Localnet: real transactions with disposable tokens that have no monetary value.**
-> Nothing has been deployed to Devnet or Mainnet. This project is unaudited.
+> **Devnet / Localnet: real transactions with valueless custom test tokens.**
+> The Devnet program is deployed and upgradeable. No Mainnet transactions,
+> website publication, Git push or merge occurred. This project is unaudited.
+
+[Public Devnet program](https://explorer.solana.com/address/6R4NM7PX1jy2E3BhLohh2eoQaF2ubkwW6iNrmgYGViHf?cluster=devnet)
+· [Three-minute recording guide](docs/demo-recording-guide.md)
+· [Submission checklist](docs/submission-checklist.md)
 
 ## What is FUSE?
 
@@ -76,7 +81,7 @@ can activate. Otherwise, deposits become refundable after expiry.
 - [x] Minimal Anchor escrow instructions and local Solana VM test suite.
 - [x] Real local-validator deposits, approvals, atomic payouts and expiry refunds.
 - [x] Rust-generated IDL/types and an isolated Wallet Standard activation page.
-- [ ] Solana Devnet integration for the core booking flow.
+- [x] Devnet deployment, verified deposits/approvals/payouts/refunds, and browser activation.
 - [ ] Demonstration video and hackathon submission materials.
 
 ## Scope and safety
@@ -84,10 +89,11 @@ can activate. Otherwise, deposits become refundable after expiry.
 The frontend demo uses simulated balances, not real funds. Amounts are integer
 **demo tokens**, with no financial value. They are not USDC or on-chain assets.
 
-The planned public Solana integration will enforce booking conditions, deposits,
-payouts, and refunds through a smart contract. The program now enforces those rules
-on a disposable local validator. The original marketplace still simulates them;
-the separate localnet page reads real accounts and signs only activation.
+The escrow program enforces deposits, approvals, payouts and refunds on Devnet
+and Localnet using valueless test tokens. The original marketplace still simulates
+them. The separate on-chain page reads actual accounts and signs activation;
+creation, deposits, supplier approvals and refunds work through the CLI scripts.
+Connecting the full marketplace to wallet-authorized escrow remains planned.
 
 FUSE's first version addresses booking formation. It does not
 guarantee that a physical workshop takes place after supplier
@@ -126,16 +132,16 @@ remote image or font dependencies.
 
 ## Available routes
 
-| Route               | Working functionality                                                                                                   |
-| ------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| `/`                 | Product explanation, shared workshop preview, featured demo listings, FAQ                                               |
-| `/how-it-works`     | Workshop terms, participant responsibilities, activation and refunds                                                    |
-| `/about`            | Mission, honest team introduction, scope and limitations                                                                |
-| `/marketplace`      | Five seeded scenarios, title search, status filters, empty state                                                        |
-| `/marketplace/[id]` | Contributions, approvals, activation, personal refunds, simulated activity, demo controls                               |
-| `/create`           | Validated form, review before publication, fixed published terms                                                        |
-| `/my-commitments`   | Current mock identity's seats, deposits, booking and refund status                                                      |
-| `/onchain-demo`     | Actual local RPC state, approvals, escrow balance, Wallet Standard connection, signed activation and genuine signatures |
+| Route               | Working functionality                                                                                                       |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `/`                 | Product explanation, shared workshop preview, featured demo listings, FAQ                                                   |
+| `/how-it-works`     | Workshop terms, participant responsibilities, activation and refunds                                                        |
+| `/about`            | Mission, honest team introduction, scope and limitations                                                                    |
+| `/marketplace`      | Five seeded scenarios, title search, status filters, empty state                                                            |
+| `/marketplace/[id]` | Contributions, approvals, activation, personal refunds, simulated activity, demo controls                                   |
+| `/create`           | Validated form, review before publication, fixed published terms                                                            |
+| `/my-commitments`   | Current mock identity's seats, deposits, booking and refund status                                                          |
+| `/onchain-demo`     | Actual Devnet state, approvals, escrow balances, wallet-signed activation and Devnet Explorer links; explicit Localnet mode |
 
 The five seeded bookings are:
 
@@ -260,8 +266,8 @@ refundable **at or after** its deadline, even if fully funded and approved.
 | `docs/demo-recording-guide.md`                | Real transaction demonstration and evidence checklist                                                                |
 | `docs/escrow-architecture.md`                 | Account design, enforcement, integration boundary and security limits                                                |
 
-The simulated UI invokes the original mock adapter. The separate localnet page
-uses `LocalnetClient` and has no localStorage balances or mock identities. Its
+The simulated UI invokes the original mock adapter. The separate on-chain page
+uses `EscrowClient` and has no localStorage balances or mock identities. Its
 small client supports reading accounts, obtaining local fee SOL, and activation.
 Future deposit/approval/refund UI belongs in this adapter with authentic wallet
 signatures; it must not convert mock role selection into signing authority.
@@ -277,7 +283,8 @@ SPL Token Program. Local VM tests load the compiled SBF program, create a valuel
 test mint, deposit tokens, and execute supplier payouts/refunds. The same program
 is now loaded on a real local validator and exercised through JSON RPC. Genuine
 confirmed signatures and inspected state are written to an ignored public receipt.
-The original marketplace remains a simulation. Devnet and Mainnet are untouched.
+The original marketplace remains a simulation. Devnet now runs the verified
+prototype; Mainnet is never used.
 
 Implemented instructions:
 
@@ -338,7 +345,7 @@ committed Cargo lockfile. No local wallet
 file, RPC server, SOL funding, or Anchor CLI is needed to execute the VM tests.
 `Anchor.toml` is workspace configuration, not an instruction to run `anchor test`.
 The declared program ID is also used for local genesis loading, which needs no
-program private key. A future Devnet deployment needs a generated program keypair,
+program private key. An independent public deployment needs its own program keypair,
 ID synchronization and rebuild. The SBF build created an ignored local keypair under
 `anchor/target/deploy/`. Its contents were not read or printed. It does not correspond
 to the declared identifier; never use it to deploy this binary unchanged, commit
@@ -401,7 +408,7 @@ ignored `anchor/localnet/receipt.json`; no fixture private key is written to dis
 
 ### Separate on-chain page
 
-Start the website normally and open `/onchain-demo` on the same machine as the
+Start the website normally and open `/onchain-demo?network=localnet` on the same machine as the
 validator. The loopback endpoint is a development endpoint, not hosted RPC.
 The page reads executable program state, actual Clock, campaign accounts, token
 balances and transaction signatures at confirmed commitment. Refresh rereads RPC;
@@ -417,8 +424,8 @@ not provide supplier/deposit/refund signing UI or secretly sign as fixture ident
 
 Wallet approval signs the exact reviewed message; the client broadcasts it only
 to the verified local RPC and checks the returned signature and confirmation.
-Network/program mismatches and missing capabilities block actions. No public
-explorer links are fabricated. Browser compatibility was exercised with a
+Network/program mismatches and missing capabilities block actions. Localnet has
+no public Explorer links. Browser compatibility was exercised with a
 **test-only Wallet Standard provider signing with a real ephemeral Ed25519 key**;
 an installed wallet extension has not been manually verified. If your extension
 does not support localnet, the independently working scripts remain the reliable
@@ -426,11 +433,11 @@ demonstration. They need no wallet extension.
 
 ### Environment and secrets
 
-The frontend needs **no environment file**: the separate page defaults to the
-verified loopback RPC and generated program ID. `.env.example` contains public
-configuration only; the page reads `NEXT_PUBLIC_SOLANA_RPC_URL` and
-`NEXT_PUBLIC_FUSE_PROGRAM_ID`. `NEXT_PUBLIC_SOLANA_NETWORK`, if set, must be
-`localnet`; other network labels are rejected. The mint and decimals come from actual RPC state.
+The frontend needs **no environment file**: the on-chain page defaults to the
+verified Devnet RPC/program. `.env.example` contains the three public settings
+shown below. Only `devnet` or `localnet` is accepted; canonical Devnet URL,
+generated program IDs and actual cluster genesis hashes are checked. Explicit
+Localnet mode uses loopback and the original ID. Mint/decimals come from RPC.
 These values do not authorize transactions. Never put private keys, recovery
 phrases, or secret RPC credentials in `NEXT_PUBLIC_*` variables.
 
@@ -509,6 +516,160 @@ Anchor CLI remains uninstalled and was unnecessary. No toolchain upgrade or prot
 rule bypass was used. Optional ledger reset and installed wallet extensions have
 not been exercised.
 
+## Public Devnet demonstration — verified Phase 4
+
+The upgradeable Devnet program is
+**[6R4NM7PX1jy2E3BhLohh2eoQaF2ubkwW6iNrmgYGViHf](https://explorer.solana.com/address/6R4NM7PX1jy2E3BhLohh2eoQaF2ubkwW6iNrmgYGViHf?cluster=devnet)**.
+Its upgrade authority is **HMpDsysi8eCv6w3HQh1xYiXkg2diJXXpbCzxAt1gXzBC**.
+The [deployment transaction](https://explorer.solana.com/tx/5JoTAUChKTfKi2ZdApjWZc6DconJC7JQ5jTqS4xw1sELWyLTMpMLDpEQotDNjxtHVUxpbmiWJ6tNAE6pSDKFRkMF?cluster=devnet)
+confirmed at slot **509637821**. Downloaded bytecode matched the rebuilt 343,184-byte
+binary exactly: SHA-256 `45337798c79006bfc9f85531b8ff2c668e19a9f998cd0ee73b35ee6d6323203d`.
+Only the existing compatible Rust 1.89 / Solana 2.3 / SBF v1.52 toolchain was used.
+
+The default Rust build keeps Localnet ID `25GSneHPbwgwoUNjjcGQ4RoJzJsxETMtZUHNhXWYTf7G`.
+The `devnet` Cargo feature selects the dedicated Devnet `declare_id!`; it does not
+alter any escrow rule. Separate binaries live in ignored `anchor/target/devnet/`
+and `anchor/target/deploy/`, and generated IDLs in `anchor/idl/devnet/` and
+`anchor/idl/`. Both generated instruction/account interfaces are tested for
+compatibility. The existing Localnet ledger was reused without a reset.
+
+### Public transaction evidence
+
+The custom six-decimal demonstration mint is
+**[DN23AC8vHB9ySZaZnWjpfg8fPduJ7VnToihugpUAGGv2](https://explorer.solana.com/address/DN23AC8vHB9ySZaZnWjpfg8fPduJ7VnToihugpUAGGv2?cluster=devnet)**.
+It is a valueless classic SPL test token, not USDC.
+
+| Verified action            | Genuine Devnet transaction                                                                                                                                   | Observed result                                                           |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------- |
+| Funding without approvals  | [Rejected activation](https://explorer.solana.com/tx/ymb7vd69zD6RfnqcowR7nZQVCXe4QUrNN1zptoAAhnVoxZzRJRgCy1FsqbHLB2XJRiY54uFBwRphreSBnF4sHk7?cluster=devnet) | Fully funded 200-token campaign remained blocked                          |
+| Exact supplier payouts     | [CLI activation](https://explorer.solana.com/tx/VupNM2JCgV11zMHxMwugadGpoDLKxY9pb4iEWzPwDoWotnFtnAx2nEiybrUJtbfZcM4N6ua4H82hZ8yMsA1yBHc?cluster=devnet)      | Venue 80, instructor 120, vault 0; Activated                              |
+| Expired contributor refund | [Refund](https://explorer.solana.com/tx/bFfpECuSegdvNPVuRJjvK8BkMdyiu5qWbEDZKTrMCLHNFiDmP4bpYy5RLpkJZz6gxMAaE5Qd5YULnE89B9XvdKu?cluster=devnet)              | Returned 40 tokens; attendee restored to 800 at this checkpoint; vault 0  |
+| Authentic browser signing  | [Browser activation](https://explorer.solana.com/tx/52oem6FJaMA2yfn1LJR9qdetCEuui4Bup5H9GNMDGA59bRBPg1zMV1Rd85Gt2ZcnfEndpKewmCDxEv88DPHC7PXC?cluster=devnet) | Another exact 80/120 payout; original supplier accounts then held 160/240 |
+
+200 tokens = **200,000,000 base units**; payouts are **80,000,000 / 120,000,000**;
+refund is **40,000,000**. The attendee later funded the separate browser campaign,
+so their final original-mint balance is 600, not the historical 800 refund checkpoint.
+All amounts are integer base units. Public addresses, signatures, slots and expected
+failures are saved in [deployment proof](docs/devnet-deployment.json),
+[scenario proof](docs/devnet-proof.json), and [browser proof](docs/devnet-browser-proof.json).
+The website loads current state from RPC, never from these recording receipts.
+
+### Verified developer commands
+
+The owner manually created and faucet-funded
+`~/.config/solana/fuse-devnet.json` in WSL. Its private contents were never printed.
+The initial 10 Devnet SOL exceeded the conservative **3.589299600 SOL** deployment
+budget, including temporary buffer rent, fees and fixtures. No faucet was requested
+automatically, no replacement deployment wallet was generated, and global CLI
+configuration was not modified. Program/buffer keys remain ignored under
+`anchor/.wallets/devnet/`. These scripts require the owner's existing local keys;
+the public website and read-only verification do not.
+
+These commands were executed successfully on this workstation:
+
+```powershell
+$fuseDevnet = '/mnt/c/Users/User/Desktop/fuse-marketplace/anchor/scripts/devnet.sh'
+wsl.exe -d Ubuntu -- bash $fuseDevnet build
+wsl.exe -d Ubuntu -- bash $fuseDevnet preflight
+wsl.exe -d Ubuntu -- bash $fuseDevnet deploy
+wsl.exe -d Ubuntu -- bash $fuseDevnet scenarios
+wsl.exe -d Ubuntu -- bash $fuseDevnet verify
+```
+
+The program is **already deployed**; repeat deployment only when intentionally
+upgrading a rebuilt, verified binary. Deployment uses a persistent ignored buffer,
+paced SDK loader writes and genuine confirmation checks, then the normal CLI's
+upgradeable deployment and byte-for-byte download verification. Interrupted uploads
+resume existing buffer bytes. Initial concurrent CLI upload failed with public RPC
+429 responses; paced uploads succeeded. No toolchain upgrade or rule bypass was used.
+See [Solana's public RPC limits](https://solana.com/docs/references/clusters).
+
+`scenarios` creates fresh ephemeral role wallets and a new six-decimal mint each
+time. It transfers 0.02 Devnet SOL to each of five disposable signers from the dedicated
+wallet, then runs the genuine success and refund flows. Expiry uses a 90-second
+deadline and polls actual Devnet Clock with a bounded 180-second wait. It never
+manipulates public time. All expected rejections are real failed transactions.
+Each run costs valueless test SOL for fees/rent and overwrites the latest public
+scenario receipt; separate browser proof retains its own mint/accounts for independent
+verification. It never resets a validator or an existing wallet. Private fixture
+keys are discarded at process exit, so those identities cannot be imported afterward.
+
+After automated browser testing consumes a ready campaign, prepare another without
+replacing the success/refund proof:
+
+```powershell
+wsl.exe -d Ubuntu -- bash $fuseDevnet prepare-browser
+```
+
+This was verified and leaves a fully funded, approved campaign with a seven-day
+deadline. Its public addresses and actual preparation signatures are in
+[the recording fixture](docs/devnet-recording-fixture.json). Refresh the on-chain
+page and choose the campaign with that exact address. Each activation is one-time;
+rerun preparation before another live activation or once the fixture expires.
+
+### Website and production configuration
+
+`/onchain-demo` defaults to Devnet. `/onchain-demo?network=localnet` preserves the
+original validator mode; network links are provided on the page. Any compatible
+Wallet Standard account advertising `solana:devnet` and legacy signing can sign
+permissionless activation. Its wallet signs the reviewed transaction and pays the
+test SOL fee. No test-token balance is needed to activate. There is no automatic
+Devnet airdrop; fund your disposable browser wallet manually. Supplier approvals,
+deposits, creation and own refunds remain CLI-only. Mock roles authorize nothing here.
+
+The browser reads executable program ownership, verified genesis, chain Clock,
+campaign approvals and actual token balances; refresh rereads RPC. Genuine history
+links select Devnet. Requests are paced and HTTP 429 retries are bounded; retries
+retain identical signed bytes. Program errors are not retried. Unknown confirmation
+outcomes retain a submitted signature for inspection. No simulated balance replaces
+an unavailable RPC. Localnet has no public Explorer links.
+
+Use these **public** values in the hosting environment **before building**, as
+Next.js embeds `NEXT_PUBLIC_*` values at build time:
+
+```dotenv
+NEXT_PUBLIC_SOLANA_RPC_URL=https://api.devnet.solana.com
+NEXT_PUBLIC_SOLANA_NETWORK=devnet
+NEXT_PUBLIC_FUSE_PROGRAM_ID=6R4NM7PX1jy2E3BhLohh2eoQaF2ubkwW6iNrmgYGViHf
+```
+
+For a local-only default, set all three to `http://127.0.0.1:8899`, `localnet`, and
+the original Localnet ID respectively, then rebuild. Loopback is local development
+configuration and should not be used for a public HTTPS website.
+
+Production build/start passed. HTTPS-origin CORS was checked against the canonical
+Devnet endpoint: HTTP 200, expected Devnet genesis, and the supplied HTTPS origin
+allowed. Actual browser reads/signing were verified from the local website. A hosted
+origin and installed wallet extension still need manual verification after hosting
+approval. Public RPC may rate-limit or block traffic; no paid RPC or API key is used.
+For Vercel, use the Next.js preset, repository root, npm, Node 22 or newer,
+`npm run build`, and the public environment above. No external hosting was performed.
+
+### Phase 4 verification
+
+| Check executed                                                                  | Result                                                                                                            |
+| ------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| TypeScript / ESLint / production build                                          | Passed                                                                                                            |
+| `npm test`                                                                      | 41 passed, including unchanged simulation rules, network boundaries and RPC retry safety                          |
+| `npm run test:browser`                                                          | 11 passed; all original seven pages and simulation flows preserved                                                |
+| `npm run test:localnet` / `npm run test:devnet`                                 | One genuine RPC client integration test passed for each network                                                   |
+| `npm run test:browser:onchain`                                                  | Three Localnet wallet tests passed                                                                                |
+| `npm run test:browser:devnet`                                                   | Three passed: real reads/Explorer/refresh, authentic signed activation with exact payouts, wrong-network blocking |
+| Rust checks / formatting                                                        | Passed for preserved Localnet and Devnet variants                                                                 |
+| Blockchain VM tests                                                             | 20 passed for each address variant against its compiled SBF binary                                                |
+| Devnet `build`, `preflight`, `deploy`, `scenarios`, `verify`, `prepare-browser` | Passed; deployment bytecode and actual transaction metadata verified                                              |
+| Runtime dependency audit                                                        | Zero reported vulnerabilities                                                                                     |
+
+An initial browser signing test encountered RPC 429 during preparation, displayed
+a failure, and recorded no fake confirmation. It passed after pacing/backoff was
+implemented. Installed wallet extensions remain unverified: the automated signing
+tests use a **test-only Wallet Standard provider with a real ephemeral Ed25519 key**.
+The test runner explicitly funded that disposable browser signer via the operator's
+CLI; that signing/funding helper is never invoked by the application.
+
+Follow [the three-minute recording guide](docs/demo-recording-guide.md) and
+[submission checklist](docs/submission-checklist.md). No video has been fabricated.
+
 ## Known limitations
 
 - Frontend prototype, not a production financial application.
@@ -517,9 +678,9 @@ not been exercised.
 - localStorage, mock identities, and client validation are not production security.
   Tabs receive storage updates, but simultaneous writes are not transactional.
 - No database, production authentication or event fulfillment. The real escrow and
-  wallet action are local-validator proof of concept only; supplier/deposit/refund
+  wallet action are unaudited test-network proof of concept only; supplier/deposit/refund
   wallet UI remains unfinished. Refunds are claimed individually, not automatically.
-- No production security review, public deployment, upgrade governance or reviewed
+- No production security review, production deployment, upgrade governance or reviewed
   token policy for assets with value exists. Unsolicited vault
   surplus and account rent remain locked; see the architecture document.
 - FUSE does not guarantee physical workshop delivery after supplier payouts
@@ -531,11 +692,9 @@ not been exercised.
 
 ## Next steps toward Solana escrow
 
-1. **Prepare a reviewed Devnet deployment.** Generate an ignored program keypair,
-   synchronize its public ID in Rust/config, rebuild the SBF binary and IDL, choose
-   deployment/upgrade authority and a valueless test mint, fund local deployer fees.
-   The current page deliberately rejects Devnet; add an explicit reviewed network
-   mode and obtain deployment approval before publishing anything.
+1. **Finish submission delivery.** Obtain owner approval for repository push and
+   website hosting, verify the hosted Devnet page and an installed wallet extension,
+   then record the technical and project videos using the submission checklist.
 2. **Complete participant wallet actions.** Extend the isolated client for campaign
    creation, supplier approvals, attendee deposits and own refunds. Verify a real
    installed wallet extension, exact decimal units, RPC failure/retry recovery and
@@ -553,7 +712,8 @@ and nothing has been published. Retain dynamic App Router support for locally
 created bookings; a static-only export is not configured.
 
 The escrow is loaded and executes on the local validator through genesis loading.
-No public-network deployment, external hosting, push or merge was performed.
+The separate Devnet build is publicly deployed and upgradeable. External website
+hosting, Git push and merge have not been performed.
 
 ## Team
 

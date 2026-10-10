@@ -1,9 +1,10 @@
 # FUSE escrow foundation
 
-This is an unaudited Anchor proof of concept, now running on a real local Solana
+This is an unaudited Anchor proof of concept running on Solana Devnet and a local
 validator. The original website keeps its independent localStorage simulation.
 `/onchain-demo` separately reads RPC accounts and supports authentic wallet-signed
-activation. No Devnet or Mainnet deployment has been performed.
+activation. Devnet deployment and both public transaction flows are verified;
+Mainnet is never used. Full marketplace wallet integration remains planned.
 
 ## Accounts and immutable terms
 
@@ -119,9 +120,9 @@ sleep and assume expiry. See the [recording guide](demo-recording-guide.md).
   campaign state and real signature history. Activation fetches the current
   conditions and supplier-owned token accounts before constructing the message.
 - `wallet.ts` uses Wallet Standard discovery, connection, disconnection and account
-  events. Only an account supporting `solana:localnet` and legacy
+  events. Only an account supporting the selected `solana:devnet` / `solana:localnet` and legacy
   `solana:signTransaction` can sign. Signed message bytes must match the reviewed
-  message. The client broadcasts only to its verified loopback RPC, checks the
+  message. The client broadcasts only to canonical Devnet or verified loopback RPC, checks the
   returned signature, and waits for confirmation. No production signing key or
   automatic fixture signer is supplied to the page.
 
@@ -148,23 +149,59 @@ balance, role selector, or simulation receipt as chain evidence. Persist an
 organizer campaign identifier before sending and reconcile the PDA before retrying
 creation, so refresh/retries do not create unrelated duplicate campaigns.
 
-Public configuration: RPC URL, localnet network label, deployed program ID, and the
+Public configuration: RPC URL, explicit test-network label, deployed program ID, and the
 selected mint address (read from Campaign or a future allowlist). None is a secret.
 No frontend private key, recovery phrase, privileged signing credential, or secret
-RPC credential is needed. `.env.example` supplies only public local-development
+RPC credential is needed. `.env.example` supplies only public Devnet
 configuration; the on-chain page uses safe defaults without an environment file.
-Non-loopback endpoints, public cluster genesis hashes, non-localnet network
-labels and program IDs differing from the generated IDL are rejected.
+Only canonical Devnet or an explicit HTTP loopback endpoint is accepted. The
+actual genesis hash is checked before program/account reads; other clusters and
+program IDs differing from the selected generated IDL are rejected. Public
+airdrop requests are disabled. Devnet transport serializes requests, respects
+bounded HTTP 429 backoff and retains identical signed transaction bytes on retry.
 History is polled because transaction indexing may lag confirmed account changes.
 There is no localStorage substitute for balances or transaction evidence.
+
+## Separate Devnet build and public proof
+
+Default Rust builds keep Localnet ID `25GSneHPbwgwoUNjjcGQ4RoJzJsxETMtZUHNhXWYTf7G`.
+The `devnet` feature compiles `declare_id!` as
+`6R4NM7PX1jy2E3BhLohh2eoQaF2ubkwW6iNrmgYGViHf`. Program logic is identical.
+IDL generation passes the same feature to Anchor's Rust metadata builder and
+asserts the resulting ID. Separate artifacts preserve the existing Localnet ledger.
+All PDAs use the selected program address, so accounts differ across deployments.
+
+The upgradeable Devnet program's authority is
+`HMpDsysi8eCv6w3HQh1xYiXkg2diJXXpbCzxAt1gXzBC`, the owner's manually created
+dedicated test wallet. No CLI configuration was overwritten and no public faucet
+request was made automatically. Program/buffer private keys remain ignored.
+The deployed binary was downloaded and compared byte-for-byte to the rebuilt
+SBF artifact. Public deployment metadata and hash are in
+[devnet-deployment.json](devnet-deployment.json).
+
+`anchor/scripts/devnet.sh` performs rent/balance/cluster preflight, resumable paced
+SDK loader writes, normal CLI deployment, real transaction scenarios, and public
+metadata verification. `scenarios` signs with ephemeral designated wallets,
+creates a six-decimal classic test mint, checks exact 80/120 payouts, and waits
+for an actual 90-second Devnet deadline before own refund. Time is never changed.
+Expected failures are submitted and checked as real failed transactions.
+[devnet-proof.json](devnet-proof.json) is public historical evidence, not UI state.
+
+Browser activation was independently signed by a test-only Wallet Standard
+provider with an authentic ephemeral key. The test runner explicitly transferred
+test SOL using the operator CLI; the application has no such key/helper and never
+signs as a fixture role. See [devnet-browser-proof.json](devnet-browser-proof.json).
+Supplier approvals, deposits, creation and refunds remain CLI-only.
+`prepare-browser` generates a fresh funded/approved campaign without overwriting
+the scenario proof; its public latest fixture is recorded separately.
 
 ## Deliberate limitations
 
 - Not audited or production-ready. These tests are evidence of specific behavior,
   not a general security guarantee or reproducible deployment verification.
-- A later deployment introduces upgrade-authority governance, new program IDs,
-  deployment keys, fees, and operational risks that this VM milestone does not settle.
-- No public deployment, token allowlist, metadata service or application indexer.
+- The owner retains a single Devnet upgrade authority and can replace code.
+  Production authority governance and operational security are not established.
+- No production deployment, token allowlist, metadata service or application indexer.
   Browser signing was tested through a test-only Wallet Standard provider using
   an authentic ephemeral Ed25519 key; installed wallet extensions remain unverified.
 - Deposits are locked until activation or expiry; there is no cancellation, approval
