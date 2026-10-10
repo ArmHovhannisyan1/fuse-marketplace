@@ -151,3 +151,12 @@ vite.config.ts.timestamp-*
 # Browser verification artifacts
 playwright-report/
 test-results/
+
+# Local Anchor / Solana build outputs and signing material
+anchor/target/
+anchor/.anchor/
+anchor/test-ledger/
+anchor/.toolchain/
+**/*-keypair.json
+anchor/.wallets/
+anchor/localnet/

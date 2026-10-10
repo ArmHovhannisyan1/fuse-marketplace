@@ -1,0 +1,822 @@
+{
+  "address": "6R4NM7PX1jy2E3BhLohh2eoQaF2ubkwW6iNrmgYGViHf",
+  "metadata": {
+    "name": "fuse_escrow",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "FUSE conditional workshop booking escrow proof of concept"
+  },
+  "instructions": [
+    {
+      "name": "activate",
+      "discriminator": [
+        194,
+        203,
+        35,
+        100,
+        151,
+        55,
+        170,
+        82
+      ],
+      "accounts": [
+        {
+          "name": "caller",
+          "signer": true
+        },
+        {
+          "name": "campaign",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  97,
+                  109,
+                  112,
+                  97,
+                  105,
+                  103,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "campaign.organizer",
+                "account": "Campaign"
+              },
+              {
+                "kind": "account",
+                "path": "campaign.identifier",
+                "account": "Campaign"
+              }
+            ]
+          }
+        },
+        {
+          "name": "mint",
+          "relations": [
+            "campaign"
+          ]
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "campaign"
+              }
+            ]
+          }
+        },
+        {
+          "name": "venue_token",
+          "writable": true
+        },
+        {
+          "name": "instructor_token",
+          "writable": true
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "approve_supplier",
+      "discriminator": [
+        203,
+        86,
+        99,
+        153,
+        0,
+        176,
+        150,
+        77
+      ],
+      "accounts": [
+        {
+          "name": "supplier",
+          "signer": true
+        },
+        {
+          "name": "campaign",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  97,
+                  109,
+                  112,
+                  97,
+                  105,
+                  103,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "campaign.organizer",
+                "account": "Campaign"
+              },
+              {
+                "kind": "account",
+                "path": "campaign.identifier",
+                "account": "Campaign"
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "role",
+          "type": {
+            "defined": {
+              "name": "SupplierRole"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "create_campaign",
+      "discriminator": [
+        111,
+        131,
+        187,
+        98,
+        160,
+        193,
+        114,
+        244
+      ],
+      "accounts": [
+        {
+          "name": "organizer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "mint"
+        },
+        {
+          "name": "campaign",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  97,
+                  109,
+                  112,
+                  97,
+                  105,
+                  103,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "organizer"
+              },
+              {
+                "kind": "arg",
+                "path": "terms.identifier"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "campaign"
+              }
+            ]
+          }
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "terms",
+          "type": {
+            "defined": {
+              "name": "CampaignTerms"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "deposit",
+      "discriminator": [
+        242,
+        35,
+        198,
+        137,
+        82,
+        225,
+        242,
+        182
+      ],
+      "accounts": [
+        {
+          "name": "contributor",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "campaign",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  97,
+                  109,
+                  112,
+                  97,
+                  105,
+                  103,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "campaign.organizer",
+                "account": "Campaign"
+              },
+              {
+                "kind": "account",
+                "path": "campaign.identifier",
+                "account": "Campaign"
+              }
+            ]
+          }
+        },
+        {
+          "name": "mint",
+          "relations": [
+            "campaign"
+          ]
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "campaign"
+              }
+            ]
+          }
+        },
+        {
+          "name": "source",
+          "writable": true
+        },
+        {
+          "name": "contribution",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  116,
+                  114,
+                  105,
+                  98,
+                  117,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "campaign"
+              },
+              {
+                "kind": "account",
+                "path": "contributor"
+              }
+            ]
+          }
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "seats",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "refund",
+      "discriminator": [
+        2,
+        96,
+        183,
+        251,
+        63,
+        208,
+        46,
+        46
+      ],
+      "accounts": [
+        {
+          "name": "contributor",
+          "signer": true,
+          "relations": [
+            "contribution"
+          ]
+        },
+        {
+          "name": "campaign",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  97,
+                  109,
+                  112,
+                  97,
+                  105,
+                  103,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "campaign.organizer",
+                "account": "Campaign"
+              },
+              {
+                "kind": "account",
+                "path": "campaign.identifier",
+                "account": "Campaign"
+              }
+            ]
+          },
+          "relations": [
+            "contribution"
+          ]
+        },
+        {
+          "name": "mint",
+          "relations": [
+            "campaign"
+          ]
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "campaign"
+              }
+            ]
+          }
+        },
+        {
+          "name": "contribution",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  116,
+                  114,
+                  105,
+                  98,
+                  117,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "campaign"
+              },
+              {
+                "kind": "account",
+                "path": "contributor"
+              }
+            ]
+          }
+        },
+        {
+          "name": "destination",
+          "writable": true
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": []
+    }
+  ],
+  "accounts": [
+    {
+      "name": "Campaign",
+      "discriminator": [
+        50,
+        40,
+        49,
+        11,
+        157,
+        220,
+        229,
+        192
+      ]
+    },
+    {
+      "name": "Contribution",
+      "discriminator": [
+        182,
+        187,
+        14,
+        111,
+        72,
+        167,
+        242,
+        212
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "InvalidAmount",
+      "msg": "Seat price, seat target, quantity, and both allocations must be positive"
+    },
+    {
+      "code": 6001,
+      "name": "InvalidDeadline",
+      "msg": "The deadline must be strictly in the future"
+    },
+    {
+      "code": 6002,
+      "name": "ArithmeticOverflow",
+      "msg": "Checked arithmetic overflow"
+    },
+    {
+      "code": 6003,
+      "name": "InvalidAllocations",
+      "msg": "Supplier allocations must equal the exact funding target"
+    },
+    {
+      "code": 6004,
+      "name": "InvalidSupplier",
+      "msg": "Suppliers must be distinct, nonzero signing public keys"
+    },
+    {
+      "code": 6005,
+      "name": "UnauthorizedSupplier",
+      "msg": "Only the designated supplier may approve this role"
+    },
+    {
+      "code": 6006,
+      "name": "AlreadyApproved",
+      "msg": "This supplier has already approved"
+    },
+    {
+      "code": 6007,
+      "name": "CampaignTerminal",
+      "msg": "The campaign is terminal and cannot accept this action"
+    },
+    {
+      "code": 6008,
+      "name": "DeadlinePassed",
+      "msg": "The activation deadline has passed"
+    },
+    {
+      "code": 6009,
+      "name": "NotFullyFunded",
+      "msg": "The campaign is not fully funded"
+    },
+    {
+      "code": 6010,
+      "name": "MissingApproval",
+      "msg": "Both designated suppliers must approve"
+    },
+    {
+      "code": 6011,
+      "name": "Overfunding",
+      "msg": "The requested seats exceed the remaining capacity"
+    },
+    {
+      "code": 6012,
+      "name": "InsufficientEscrow",
+      "msg": "The token vault does not cover the recorded deposits"
+    },
+    {
+      "code": 6013,
+      "name": "RefundNotAvailable",
+      "msg": "Deposits cannot be refunded before expiry"
+    },
+    {
+      "code": 6014,
+      "name": "AlreadyRefunded",
+      "msg": "This contribution has already been refunded or has no deposit"
+    },
+    {
+      "code": 6015,
+      "name": "InvalidContribution",
+      "msg": "This contribution belongs to another campaign or signer"
+    },
+    {
+      "code": 6016,
+      "name": "InvalidRecipient",
+      "msg": "The recipient must be a separate supplier-owned token account"
+    },
+    {
+      "code": 6017,
+      "name": "FreezableMint",
+      "msg": "Freeze-authority mints are excluded from this proof of concept"
+    }
+  ],
+  "types": [
+    {
+      "name": "Campaign",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "organizer",
+            "type": "pubkey"
+          },
+          {
+            "name": "identifier",
+            "type": "u64"
+          },
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "seat_price",
+            "type": "u64"
+          },
+          {
+            "name": "required_seats",
+            "type": "u64"
+          },
+          {
+            "name": "target_amount",
+            "type": "u64"
+          },
+          {
+            "name": "deadline",
+            "type": "i64"
+          },
+          {
+            "name": "venue",
+            "type": "pubkey"
+          },
+          {
+            "name": "instructor",
+            "type": "pubkey"
+          },
+          {
+            "name": "venue_allocation",
+            "type": "u64"
+          },
+          {
+            "name": "instructor_allocation",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "vault_bump",
+            "type": "u8"
+          },
+          {
+            "name": "venue_approved",
+            "type": "bool"
+          },
+          {
+            "name": "instructor_approved",
+            "type": "bool"
+          },
+          {
+            "name": "funded_seats",
+            "type": "u64"
+          },
+          {
+            "name": "escrowed_amount",
+            "type": "u64"
+          },
+          {
+            "name": "status",
+            "type": {
+              "defined": {
+                "name": "CampaignStatus"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "CampaignStatus",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Open"
+          },
+          {
+            "name": "Activated"
+          },
+          {
+            "name": "Refunding"
+          },
+          {
+            "name": "FullyRefunded"
+          }
+        ]
+      }
+    },
+    {
+      "name": "CampaignTerms",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "identifier",
+            "type": "u64"
+          },
+          {
+            "name": "seat_price",
+            "type": "u64"
+          },
+          {
+            "name": "required_seats",
+            "type": "u64"
+          },
+          {
+            "name": "deadline",
+            "type": "i64"
+          },
+          {
+            "name": "venue",
+            "type": "pubkey"
+          },
+          {
+            "name": "instructor",
+            "type": "pubkey"
+          },
+          {
+            "name": "venue_allocation",
+            "type": "u64"
+          },
+          {
+            "name": "instructor_allocation",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Contribution",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "campaign",
+            "type": "pubkey"
+          },
+          {
+            "name": "contributor",
+            "type": "pubkey"
+          },
+          {
+            "name": "seats",
+            "type": "u64"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "refunded",
+            "type": "bool"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SupplierRole",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Venue"
+          },
+          {
+            "name": "Instructor"
+          }
+        ]
+      }
+    }
+  ]
+}

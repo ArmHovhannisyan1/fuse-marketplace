@@ -1,0 +1,86 @@
+{
+  "campaign": "GGxZfke5dHeFFCv6V5BVRG6Ur6kvqC86giKLzyk8ZXRT",
+  "deadline": 1792264626,
+  "decimals": 6,
+  "genesisHash": "EtWTRABZaYq6iMfeYKouRu166VU2xqa1wcaWoxPkrZBG",
+  "instructorToken": "7HEUUzhDqzrJvkJaV7PQ3wiY29vWLryRVoPMbDxQ4RaT",
+  "mint": "96uw7d7AT7ZDS3x1MXE3WrpYBGLVztNYY6xR9Qn17AWL",
+  "programId": "6R4NM7PX1jy2E3BhLohh2eoQaF2ubkwW6iNrmgYGViHf",
+  "rpc": "https://api.devnet.solana.com",
+  "statusAtPreparation": "Open; fully funded and both suppliers approved",
+  "transactions": [
+    {
+      "error": null,
+      "label": "Fund five disposable test signers with 0.02 Devnet SOL each",
+      "outcome": "confirmed",
+      "signature": "37WDcnpv1NHFYZPnh832JvTqXVm3zqS2uX6pyhUDdNWrGvxaNt1Rf7zWnQMaumGoEaN83JVeyLBnggarTQuPYgh6",
+      "slot": 509642920
+    },
+    {
+      "error": null,
+      "label": "Create six-decimal valueless FUSE demonstration mint",
+      "outcome": "confirmed",
+      "signature": "5CMLnWf4EhFtL1EDA7XTP5cmY4FTdRMiQssKMMgNFyTzHt2mREfWzyz8yMiHwMwsXcZ4H7p11UbjSDebaU7knkKv",
+      "slot": 509642933
+    },
+    {
+      "error": null,
+      "label": "Create attendee token account",
+      "outcome": "confirmed",
+      "signature": "4P31h9srzbqjHpxtPd49KbgJuqYUDqhPYSkn9pQRt7pEqCciSGBmn6AZtghPggW2wkHx81Hw4pxvHxGmocW62eLu",
+      "slot": 509642946
+    },
+    {
+      "error": null,
+      "label": "Create venue token account",
+      "outcome": "confirmed",
+      "signature": "2PKg5VJnyheNzQ6imuuEHyLxamcCTNLQGHF72wKjAnXgt1Frq838P6fWrP3YsF9V5AQETovuYMVsjf6QNowUxWT3",
+      "slot": 509642959
+    },
+    {
+      "error": null,
+      "label": "Create instructor token account",
+      "outcome": "confirmed",
+      "signature": "jYbAUuGbBazHygetWTbaDsAPMybubFnw9v58CTxnjzzcPw84aZGqnCTqpTrhex89sQHTjKuYCmKZovm6BkeyBfK",
+      "slot": 509642980
+    },
+    {
+      "error": null,
+      "label": "Fund attendee with 1000 valueless test tokens",
+      "outcome": "confirmed",
+      "signature": "5vcSjDooJACvcRTp4Co9WqbvjumdFZnwUXRrAcXUZ3amsy5LQEpMH2NHAMwPXCypKprVaRFTvawYLYJTkDWc8oCq",
+      "slot": 509642988
+    },
+    {
+      "error": null,
+      "label": "Prepare browser workshop",
+      "outcome": "confirmed",
+      "signature": "D7JL5yYFp1eHG9XToYuSyHydBL93Sp3ZZNbjFRiunkjTqYpvj7DHNLx485um5LnZWomdPWzeVsUW8ZobXfVSebt",
+      "slot": 509643000
+    },
+    {
+      "error": null,
+      "label": "Fund browser workshop",
+      "outcome": "confirmed",
+      "signature": "3hasuyY875VysUGhv2xxNmhU5MyfMmKbDqEoaD5Au1GQvbiby32qb2S2M64khDfB9xHMYNnrrE8NwvskPomuRR8Q",
+      "slot": 509643011
+    },
+    {
+      "error": null,
+      "label": "Approve browser venue",
+      "outcome": "confirmed",
+      "signature": "5MJ8XhmMYp6UuZVKqMxC4tx4GRLr3Fnn83FFjXQk8HEWnd9kGb1jaQUvi8pP9fLY2fQM8zin77v3yZhisvuYJfBG",
+      "slot": 509643023
+    },
+    {
+      "error": null,
+      "label": "Approve browser instructor",
+      "outcome": "confirmed",
+      "signature": "gNVM4qBBjsgoi3WEx5fkALdGmfLyKSP2vgDyxeDqPgbAt1Ucaa8TL7iRL3FCPodw9EUDS1sg8Ja6Ko2o2LwYAsH",
+      "slot": 509643034
+    }
+  ],
+  "vault": "3jVK1m7eedtsh8joTr7csy9U98y4i8wWt3gAh4cvRJBt",
+  "vaultBaseUnits": 200000000,
+  "venueToken": "9A88CnCf7VFyy9aTA1spA91kY3GTRrgqu6rqaSXsX12i"
+}
