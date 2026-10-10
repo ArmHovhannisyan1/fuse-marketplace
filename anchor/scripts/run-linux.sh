@@ -39,5 +39,32 @@ case "${1:-test}" in
   resolve)
     cargo generate-lockfile
     ;;
-  *) echo "Usage: $0 {build|test|prepare-tests|check|fmt|format|resolve}" >&2; exit 2 ;;
+  idl)
+    cargo run --locked -p fuse-escrow --example export_idl
+    ;;
+  validator)
+    if [[ ! -f "$FUSE_WORKSPACE/target/deploy/fuse_escrow.so" ]]; then
+      echo "Build first: bash anchor/scripts/run-linux.sh build" >&2
+      exit 1
+    fi
+    FUSE_PROGRAM_ID="$(sed -n 's/^declare_id!("\([^"]*\)");/\1/p' programs/fuse-escrow/src/lib.rs)"
+    test -n "$FUSE_PROGRAM_ID"
+    # A dedicated disposable ledger on Linux's filesystem. No cluster cloning.
+    # Reset is explicit, restricted to this path, and never the user's other ledger.
+    FUSE_LEDGER="$FUSE_TOOLS/fuse-localnet-ledger"
+    mkdir -p "$FUSE_LEDGER"
+    echo "Local genesis deployment: $FUSE_PROGRAM_ID (upgrades disabled)"
+    echo "Disposable ledger: $FUSE_LEDGER; Ctrl+C stops the validator."
+    FUSE_RESET=()
+    if [[ "${2:-}" == "--reset" ]]; then FUSE_RESET=(--reset); fi
+    export RUST_LOG="${RUST_LOG:-warn}"
+    exec solana-test-validator --ledger "$FUSE_LEDGER" --bind-address 127.0.0.1 \
+      --rpc-port 8899 --limit-ledger-size 10000 --log \
+      --bpf-program "$FUSE_PROGRAM_ID" "$FUSE_WORKSPACE/target/deploy/fuse_escrow.so" \
+      "${FUSE_RESET[@]}"
+    ;;
+  localnet)
+    cargo run --locked -p fuse-escrow --example localnet
+    ;;
+  *) echo "Usage: $0 {build|test|prepare-tests|check|fmt|format|resolve|idl|validator [--reset]|localnet}" >&2; exit 2 ;;
 esac

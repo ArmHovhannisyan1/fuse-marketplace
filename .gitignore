@@ -159,3 +159,4 @@ anchor/test-ledger/
 anchor/.toolchain/
 **/*-keypair.json
 anchor/.wallets/
+anchor/localnet/

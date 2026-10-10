@@ -1304,8 +1304,13 @@ name = "fuse-escrow"
 version = "0.1.0"
 dependencies = [
  "anchor-lang",
+ "anchor-lang-idl",
  "anchor-spl",
+ "base64 0.22.1",
+ "bincode",
  "litesvm",
+ "reqwest",
+ "serde_json",
  "solana-sdk",
  "solana-system-interface",
  "spl-token",
