@@ -58,8 +58,11 @@ case "${1:-test}" in
     FUSE_RESET=()
     if [[ "${2:-}" == "--reset" ]]; then FUSE_RESET=(--reset); fi
     export RUST_LOG="${RUST_LOG:-warn}"
+    # Unused disposable public SOL recipient; avoid relying on the CLI's default
+    # wallet. Its ephemeral key was discarded. Scenarios use the local faucet.
     exec solana-test-validator --ledger "$FUSE_LEDGER" --bind-address 127.0.0.1 \
-      --rpc-port 8899 --limit-ledger-size 10000 --log \
+      --mint DtKiG54KNirkJYWKhqqsYrLqLbKV7LsMAh5VNrpNUoqY \
+      --rpc-port 8899 --limit-ledger-size 1000000 --log \
       --bpf-program "$FUSE_PROGRAM_ID" "$FUSE_WORKSPACE/target/deploy/fuse_escrow.so" \
       "${FUSE_RESET[@]}"
     ;;

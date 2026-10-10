@@ -68,6 +68,7 @@ export function Header() {
               ...nav,
               ["/my-commitments", "My commitments"],
               ["/create", "Create a demo booking"],
+              ["/onchain-demo", "Solana localnet demo"],
             ].map(([href, label]) => (
               <Link key={href} href={href} onClick={() => setMenuOpen(false)}>
                 {label}
@@ -79,7 +80,11 @@ export function Header() {
       <div className="prototype-strip">
         <div className="container">
           <FlaskConical size={14} aria-hidden="true" />
-          <span>{BRAND.notice}</span>
+          <span>
+            {pathname === "/onchain-demo"
+              ? "Solana localnet — real transactions with valueless local test tokens."
+              : BRAND.notice}
+          </span>
           <span className="prototype-extra">
             A little coordination goes a long way.
           </span>
@@ -89,14 +94,16 @@ export function Header() {
   );
 }
 export function StorageNotice() {
+  const pathname = usePathname();
   const { notice } = useDemo();
-  return notice ? (
+  return pathname !== "/onchain-demo" && notice ? (
     <div className="container storage-notice" role="status">
       {notice}
     </div>
   ) : null;
 }
 export function Footer() {
+  const pathname = usePathname();
   return (
     <footer className="site-footer">
       <div className="container footer-top">
@@ -114,11 +121,16 @@ export function Footer() {
           <Link href="/about">About FUSE</Link>
           <Link href="/create">Create a demo booking</Link>
           <Link href="/my-commitments">My commitments</Link>
+          <Link href="/onchain-demo">Solana localnet demo</Link>
         </nav>
       </div>
       <div className="container footer-bottom">
         <span>Built by two siblings. A first hackathon, together.</span>
-        <span>Prototype · Demo tokens only · Planned for Solana</span>
+        <span>
+          {pathname === "/onchain-demo"
+            ? "Unaudited · Local validator only · No assets with value"
+            : "Prototype · Demo tokens only · Planned for Solana"}
+        </span>
       </div>
     </footer>
   );

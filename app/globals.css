@@ -1,5 +1,136 @@
 @import "tailwindcss";
 
+.onchain-page {
+  padding-bottom: 64px;
+}
+.chain-panel {
+  padding: 28px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper);
+  margin-bottom: 24px;
+  min-width: 0;
+}
+.chain-panel h2 {
+  font-size: 24px;
+  letter-spacing: -0.6px;
+  margin-bottom: 16px;
+}
+.chain-panel p {
+  margin-block: 14px;
+}
+.chain-panel a {
+  text-decoration: underline;
+}
+.chain-panel-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.chain-layout {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+.chain-facts {
+  display: grid;
+  gap: 16px;
+  margin-block: 20px;
+}
+.chain-facts dt {
+  color: var(--muted);
+  font-size: 12px;
+}
+.chain-facts dd {
+  margin: 2px 0 0;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+.chain-address,
+.chain-transaction,
+.chain-history code {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  font-family: monospace;
+  font-size: 13px;
+}
+.chain-panel label {
+  display: block;
+  font-weight: 600;
+  margin-block: 16px 6px;
+}
+.chain-panel select {
+  width: 100%;
+  max-width: 100%;
+  min-height: 46px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px;
+  background: var(--paper);
+  margin-bottom: 14px;
+}
+.chain-approvals {
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 18px;
+  margin-block: 24px;
+}
+.chain-approvals li {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+.chain-approvals span {
+  display: block;
+}
+.chain-error {
+  color: #8b2929;
+  background: #fff1ef;
+  border: 1px solid #e8c3bc;
+  padding: 14px;
+  border-radius: 8px;
+  overflow-wrap: anywhere;
+}
+.chain-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.chain-transaction {
+  background: var(--green-soft);
+  padding: 16px;
+  border-radius: 8px;
+  margin-top: 20px;
+}
+.chain-transaction strong {
+  font-family: Arial, Helvetica, sans-serif;
+}
+.chain-safety {
+  border-top: 1px solid var(--line);
+  padding-top: 20px;
+}
+.chain-history {
+  padding-left: 22px;
+}
+.chain-history li {
+  margin-block: 16px;
+}
+.chain-history code {
+  display: block;
+}
+@media (max-width: 768px) {
+  .chain-layout {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .chain-panel {
+    padding: 20px;
+  }
+}
+
 :root {
   --background: #fafbf7;
   --paper: #fff;

@@ -443,6 +443,12 @@ fn main() -> Result<()> {
     )?;
 
     let success = Booking::new(organizer.pubkey(), 1);
+    println!(
+        "A campaign: {}; vault: {}; mint: {}",
+        success.address,
+        success.vault,
+        mint.pubkey()
+    );
     let deadline = client.clock()?.unix_timestamp + 600;
     client.send(
         "A: Create successful workshop",
@@ -561,6 +567,7 @@ fn main() -> Result<()> {
     println!("A VERIFIED: venue=80, instructor=120, vault=0, status=Activated");
 
     let expiry = Booking::new(organizer.pubkey(), 2);
+    println!("B campaign: {}; vault: {}", expiry.address, expiry.vault);
     let expiry_deadline = client.clock()?.unix_timestamp + 15;
     client.send(
         "B: Create short-deadline workshop",
