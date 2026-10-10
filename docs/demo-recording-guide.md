@@ -39,7 +39,30 @@ Use disposable local tokens only. No recording has been created by these scripts
    do not exist on Devnet or Mainnet. The receipt is evidence for this ledger only;
    resetting the validator invalidates its references. Save a fresh receipt with
    your recording, without private keys.
-7. End with the limitation: this unaudited proof of concept coordinates booking
+7. Optionally present the browser flow: start the website, open `/onchain-demo`,
+   choose the newly prepared campaign **3** whose address prefix matches the
+   receipt; verify its full address displayed below the selector.
+   Use a disposable Wallet Standard wallet supporting `solana:localnet` and legacy
+   signing. Connect, request local fee SOL, review the 80/120 allocations and sign
+   activation. Show Pending → Confirmed, actual zero escrow balance, then refresh
+   and inspect its genuine signature. History polls every four seconds and can
+   take several seconds to appear after confirmation. Existing supplier balances
+   increase by another 80/120 (to **160/240** for this fixture).
+   Extension compatibility has not been manually tested; the automated browser
+   test uses a real ephemeral key behind a test-only Wallet Standard provider.
+   Do not present that provider as an installed public wallet product.
+8. For a repeatable automated browser demonstration, first build the website,
+   run `localnet` to prepare a fresh unactivated campaign, then run:
+   ```powershell
+   npm run test:localnet
+   npm run test:browser:onchain
+   ```
+   The latter verifies wallet rejection, authentic signing, exact token deltas,
+   refresh and network mismatch. It consumes the ready campaign, saves public
+   `anchor/localnet/browser-receipt.json` and screenshots under `test-results/`.
+   Run `localnet` again before rerunning this signing test or presenting another
+   activation. The regular `npm run test:browser` suite needs no validator.
+9. End with the limitation: this unaudited proof of concept coordinates booking
    formation and payouts. It does not guarantee workshop delivery or resolve disputes.
 
 The original `/marketplace` remains a localStorage simulation. Its mock role
