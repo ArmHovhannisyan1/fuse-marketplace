@@ -37,11 +37,11 @@ def transaction(sig):
     assert tx and tx["meta"]["err"] is None
     return tx
 
-def tokens(tx, which, account):
+def tokens(tx, which, account, mint=None):
     keys = tx["transaction"]["message"]["accountKeys"]
     index = next(i for i, key in enumerate(keys) if key["pubkey"] == account)
     balance = next(item for item in tx["meta"][which] if item["accountIndex"] == index)
-    assert balance["mint"] == proof["mint"] and balance["uiTokenAmount"]["decimals"] == 6
+    assert balance["mint"] == (mint or proof["mint"]) and balance["uiTokenAmount"]["decimals"] == 6
     return int(balance["uiTokenAmount"]["amount"])
 
 activation = transaction(proof["success"]["activationSignature"])
@@ -66,8 +66,8 @@ if browser_path.exists():
     assert browser["rpc"] == rpc_url and browser["programId"] == proof["programId"]
     browser_tx = transaction(browser["signature"])
     assert any(key["pubkey"] == browser["signer"] and key["signer"] for key in browser_tx["transaction"]["message"]["accountKeys"])
-    for account, allocation in [(proof["venueToken"], 80_000_000), (proof["instructorToken"], 120_000_000)]:
-        assert tokens(browser_tx, "postTokenBalances", account) - tokens(browser_tx, "preTokenBalances", account) == allocation
+    for account, allocation in [(browser["venueToken"], 80_000_000), (browser["instructorToken"], 120_000_000)]:
+        assert tokens(browser_tx, "postTokenBalances", account, browser["mint"]) - tokens(browser_tx, "preTokenBalances", account, browser["mint"]) == allocation
         current = int(rpc("getTokenAccountBalance", [account, {"commitment": "confirmed"}])["value"]["amount"])
         print(f"Current supplier balance {account}: {current} base units (six decimals)")
     print("VERIFIED: authentic browser signer and second exact 80/120 payout.")
