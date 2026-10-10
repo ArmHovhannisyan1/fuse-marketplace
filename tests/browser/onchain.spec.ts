@@ -6,7 +6,7 @@ test("unavailable local RPC and missing wallet never show simulated funds", asyn
   await page.route("http://127.0.0.1:8899/**", (route) =>
     route.abort("connectionrefused"),
   );
-  await page.goto("/onchain-demo");
+  await page.goto("/onchain-demo?network=localnet");
   await expect(page.getByRole("heading", { level: 1 })).toContainText(
     "Solana Localnet",
   );
@@ -37,7 +37,7 @@ test("localnet error page stays readable at mobile, tablet and desktop widths", 
   await page.route("http://127.0.0.1:8899/**", (route) => route.abort());
   for (const width of [375, 768, 1440]) {
     await page.setViewportSize({ width, height: 900 });
-    await page.goto("/onchain-demo");
+    await page.goto("/onchain-demo?network=localnet");
     await expect(page.locator(".chain-error[role='alert']")).toBeVisible();
     expect(
       await page.evaluate(

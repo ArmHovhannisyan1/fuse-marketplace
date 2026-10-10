@@ -12,7 +12,9 @@
     "test": "vitest run",
     "test:browser": "playwright test",
     "test:browser:onchain": "playwright test --config playwright.localnet.config.ts",
-    "test:localnet": "vitest run --config vitest.localnet.config.mts"
+    "test:localnet": "vitest run --config vitest.localnet.config.mts",
+    "test:devnet": "vitest run --config vitest.devnet.config.mts",
+    "test:browser:devnet": "playwright test --config playwright.devnet.config.ts"
   },
   "engines": {
     "node": ">=22.0.0"

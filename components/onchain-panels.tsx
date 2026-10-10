@@ -3,13 +3,19 @@
 import { CheckCircle2, CircleDashed, ShieldCheck } from "lucide-react";
 import type { Signature } from "@solana/kit";
 import type { ChainCampaign, Snapshot } from "@/lib/solana/client";
-import { activationReason, tokenAmount } from "@/lib/solana/interface";
+import {
+  activationReason,
+  tokenAmount,
+  explorerLink,
+  type DemoNetwork,
+} from "@/lib/solana/interface";
 import type { LocalWallet, WalletConnection } from "@/lib/solana/wallet";
 
 const date = (seconds: bigint) =>
   new Date(Number(seconds) * 1000).toLocaleString();
 
 interface CampaignPanelProps {
+  network: DemoNetwork;
   campaign: ChainCampaign | undefined;
   state: Snapshot | null;
   busy: boolean;
@@ -19,6 +25,7 @@ interface CampaignPanelProps {
   onReview: () => void;
 }
 export function CampaignPanel({
+  network,
   campaign,
   state,
   busy,
@@ -27,6 +34,8 @@ export function CampaignPanel({
   onSelect,
   onReview,
 }: CampaignPanelProps) {
+  const tokenLabel =
+    network === "devnet" ? "valueless Devnet test tokens" : "local test tokens";
   return (
     <section className="chain-panel" aria-labelledby="campaign-heading">
       <h2 id="campaign-heading">Workshop escrow</h2>
@@ -49,6 +58,16 @@ export function CampaignPanel({
           <p className="chain-address" data-testid="chain-campaign-address">
             {campaign.address}
           </p>
+          {network === "devnet" && (
+            <a
+              className="chain-explorer"
+              href={explorerLink("address", campaign.address)}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Inspect campaign on Devnet Explorer
+            </a>
+          )}
           <span className="status-badge">
             <ShieldCheck size={14} aria-hidden="true" />
             <span data-testid="chain-status">
@@ -66,15 +85,14 @@ export function CampaignPanel({
               <dd>
                 {campaign.funded_seats.toString()} of{" "}
                 {campaign.required_seats.toString()} ·{" "}
-                {tokenAmount(campaign.seat_price, campaign.decimals)} local test
-                tokens / seat
+                {tokenAmount(campaign.seat_price, campaign.decimals)}{" "}
+                {tokenLabel} / seat
               </dd>
             </div>
             <div>
               <dt>Actual escrow token balance</dt>
               <dd data-testid="chain-vault-balance">
-                {tokenAmount(campaign.balance, campaign.decimals)} local test
-                tokens
+                {tokenAmount(campaign.balance, campaign.decimals)} {tokenLabel}
               </dd>
               <dd>
                 {campaign.balance.toString()} base units · {campaign.decimals}{" "}
@@ -85,8 +103,8 @@ export function CampaignPanel({
               <dt>Contract accounting / target</dt>
               <dd>
                 {tokenAmount(campaign.escrowed_amount, campaign.decimals)} /{" "}
-                {tokenAmount(campaign.target_amount, campaign.decimals)} local
-                test tokens
+                {tokenAmount(campaign.target_amount, campaign.decimals)}{" "}
+                {tokenLabel}
               </dd>
             </div>
             <div>
@@ -129,8 +147,8 @@ export function CampaignPanel({
                     {approved ? "approved" : "awaiting approval"}
                   </strong>
                   <span>
-                    {tokenAmount(amount as bigint, campaign.decimals)} local
-                    test tokens
+                    {tokenAmount(amount as bigint, campaign.decimals)}{" "}
+                    {tokenLabel}
                   </span>
                   <span className="chain-address">{String(supplier)}</span>
                 </div>
@@ -147,7 +165,7 @@ export function CampaignPanel({
           </button>
           <p id="chain-action-reason">
             {blocked ||
-              "All conditions met. Your wallet signs the activation and pays the local fee. Supplier approvals were separately signed by their designated wallets."}
+              "All conditions met. Your wallet signs activation and pays the test SOL fee. No test-token balance is needed to activate. Suppliers separately signed their approvals."}
           </p>
           <p>
             No mock role selection is used here. Deposits, approvals and refunds
@@ -156,14 +174,15 @@ export function CampaignPanel({
         </>
       ) : (
         <p>
-          Connect to the local validator to load actual campaign state. No
-          simulated balance is substituted.
+          Connect to RPC to load actual campaign state. No simulated balance is
+          substituted.
         </p>
       )}
     </section>
   );
 }
 interface WalletPanelProps {
+  network: DemoNetwork;
   connection: WalletConnection | null;
   wallets: LocalWallet[];
   walletIndex: string;
@@ -179,6 +198,7 @@ interface WalletPanelProps {
   transact: (action: "airdrop") => void;
 }
 export function WalletPanel({
+  network,
   connection,
   wallets,
   walletIndex,
@@ -197,7 +217,7 @@ export function WalletPanel({
     <aside className="chain-panel" aria-labelledby="wallet-heading">
       <h2 id="wallet-heading">Your signing wallet</h2>
       <p>
-        Use a disposable wallet configured for localnet. Keys stay in your
+        Use a disposable wallet configured for {network}. Keys stay in your
         wallet; the website has no signing keys.
       </p>
       {connection ? (
@@ -210,13 +230,16 @@ export function WalletPanel({
               </dd>
             </div>
             <div>
-              <dt>Local SOL for transaction fees</dt>
+              <dt>
+                {network === "devnet" ? "Valueless Devnet SOL" : "Local SOL"}{" "}
+                for transaction fees
+              </dt>
               <dd>
                 {mismatch
                   ? "Unavailable on a mismatched network"
                   : balance === null
                     ? "Not loaded"
-                    : `${tokenAmount(balance, 9)} local SOL`}
+                    : `${tokenAmount(balance, 9)} ${network === "devnet" ? "Devnet test SOL" : "local SOL"}`}
               </dd>
             </div>
           </dl>
@@ -228,13 +251,15 @@ export function WalletPanel({
             >
               Disconnect wallet
             </button>
-            <button
-              className="button button-outline"
-              disabled={busy || !!mismatch || !rpcReady}
-              onClick={() => void transact("airdrop")}
-            >
-              Request local test SOL
-            </button>
+            {network === "localnet" && (
+              <button
+                className="button button-outline"
+                disabled={busy || !!mismatch || !rpcReady}
+                onClick={() => void transact("airdrop")}
+              >
+                Request local test SOL
+              </button>
+            )}
           </div>
         </>
       ) : (
@@ -264,7 +289,7 @@ export function WalletPanel({
             Connect wallet
           </button>
           <p>
-            Localnet and legacy signing support are required. If your extension
+            {network} and legacy signing support are required. If your extension
             does not support them, use the real CLI scenarios; no wallet
             extension is needed there.
           </p>
@@ -280,13 +305,36 @@ export function WalletPanel({
           <strong>{transaction.status}</strong>
           {transaction.signature && (
             <p data-testid="chain-transaction-signature">
-              {transaction.signature}
+              {network === "devnet" ? (
+                <a
+                  href={explorerLink("tx", transaction.signature)}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {transaction.signature}
+                </a>
+              ) : (
+                transaction.signature
+              )}
             </p>
           )}
         </div>
       )}
       <p className="chain-safety">
-        Unaudited proof of concept. Local test tokens only. Payment does not
+        {network === "devnet" && (
+          <>
+            Fund fee SOL manually using the{" "}
+            <a
+              href="https://faucet.solana.com"
+              target="_blank"
+              rel="noreferrer"
+            >
+              official Devnet faucet
+            </a>
+            . The page never requests Devnet funds automatically.{" "}
+          </>
+        )}
+        Unaudited proof of concept. Valueless test tokens only. Payment does not
         guarantee a physical workshop will happen.
       </p>
     </aside>

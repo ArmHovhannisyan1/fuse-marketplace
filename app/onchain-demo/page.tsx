@@ -1,10 +1,17 @@
 import type { Metadata } from "next";
 import { OnchainDemo } from "@/components/onchain-demo";
 export const metadata: Metadata = {
-  title: "Solana Localnet",
+  title: "Solana Test Networks",
   description:
-    "Real FUSE escrow transactions on a disposable local Solana validator.",
+    "Authentic FUSE escrow transactions on Solana Devnet or a local validator. Valueless test tokens only.",
 };
-export default function OnchainPage() {
-  return <OnchainDemo />;
+export default async function OnchainPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ network?: string }>;
+}) {
+  const { network } = await searchParams;
+  const selected =
+    network === "localnet" || network === "devnet" ? network : undefined;
+  return <OnchainDemo key={selected || "configured"} network={selected} />;
 }

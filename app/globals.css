@@ -3,6 +3,13 @@
 .onchain-page {
   padding-bottom: 64px;
 }
+.onchain-page > .chain-buttons {
+  margin-bottom: 20px;
+}
+.chain-explorer {
+  display: block;
+  margin-bottom: 12px;
+}
 .chain-panel {
   padding: 28px;
   border: 1px solid var(--line);

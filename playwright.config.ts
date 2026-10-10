@@ -5,7 +5,7 @@ const localChrome =
   "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
 export default defineConfig({
   testDir: "./tests/browser",
-  testIgnore: "**/onchain-live.spec.ts",
+  testIgnore: ["**/onchain-live.spec.ts", "**/devnet-live.spec.ts"],
   fullyParallel: false,
   workers: 1,
   timeout: 45_000,

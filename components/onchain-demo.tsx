@@ -8,13 +8,18 @@ import { RefreshCw } from "lucide-react";
 import { CampaignPanel, WalletPanel } from "./onchain-panels";
 import { Dialog, PageIntro } from "./ui";
 import {
-  LocalnetClient,
+  EscrowClient,
   type Snapshot,
   type ChainSignature,
 } from "@/lib/solana/client";
 import {
   activationReason,
-  PROGRAM_ID,
+  DEVNET_PROGRAM_ID,
+  DEVNET_RPC,
+  explorerLink,
+  localnetConfig,
+  networkConfig,
+  type DemoNetwork,
   tokenAmount,
 } from "@/lib/solana/interface";
 import {
@@ -28,17 +33,23 @@ import {
 const message = (error: unknown) =>
   error instanceof Error
     ? error.message
-    : "The local transaction could not complete.";
+    : "The test-network transaction could not complete.";
 const date = (seconds: bigint) =>
   new Date(Number(seconds) * 1000).toLocaleString();
-export function OnchainDemo() {
+export function OnchainDemo({ network }: { network?: DemoNetwork }) {
   const setup = useMemo(() => {
     try {
-      return { client: new LocalnetClient(), error: "" };
+      const config =
+        network === "localnet"
+          ? localnetConfig()
+          : network === "devnet"
+            ? networkConfig(DEVNET_RPC, DEVNET_PROGRAM_ID, "devnet")
+            : networkConfig();
+      return { client: new EscrowClient(config), error: "" };
     } catch (error) {
       return { client: null, error: message(error) };
     }
-  }, []);
+  }, [network]);
   const [state, setState] = useState<Snapshot | null>(null);
   const [rpcError, setRpcError] = useState("");
   const [loading, setLoading] = useState(true);
@@ -57,14 +68,21 @@ export function OnchainDemo() {
   const [history, setHistory] = useState<readonly ChainSignature[]>([]);
   const [historyError, setHistoryError] = useState("");
   const client = setup.client;
+  const currentNetwork = client?.config.network || network || "devnet";
+  const networkName = currentNetwork === "devnet" ? "Devnet" : "Localnet";
   const campaign =
     state?.campaigns.find((item) => item.address === selected) ||
     state?.campaigns[0];
   const campaignAddress = campaign?.address;
-  const mismatch = connection ? networkReason(connection) : null;
+  const mismatch = connection
+    ? networkReason(connection, currentNetwork)
+    : null;
   const blocked = !connection
     ? "Connect a wallet to sign your own transaction."
     : mismatch ||
+      (currentNetwork === "devnet" && balance === 0n
+        ? `No ${networkName} test SOL for transaction fees. Fund your disposable wallet first.`
+        : null) ||
       (campaign && state
         ? activationReason(campaign, state.clock)
         : "Load a campaign first.");
@@ -85,8 +103,10 @@ export function OnchainDemo() {
       setRpcError("");
     } catch (error) {
       setState(null); // Never leave stale funds looking current when RPC fails.
+      setBalance(null);
+      setHistory([]);
       setRpcError(
-        `Local RPC unavailable or invalid. Start the FUSE validator, then refresh. ${message(error)}`,
+        `${client.config.network === "localnet" ? "Local RPC unavailable or invalid. Start the FUSE validator" : "Devnet RPC unavailable or invalid. The free public RPC may be rate-limited; wait briefly"}, then refresh. ${message(error)}`,
       );
     } finally {
       setLoading(false);
@@ -168,18 +188,21 @@ export function OnchainDemo() {
     };
     // The validator's history index can lag account confirmation/rooting.
     void update();
-    const timer = setInterval(() => void update(), 4_000);
+    const timer = setInterval(
+      () => void update(),
+      currentNetwork === "devnet" ? 15_000 : 4_000,
+    );
     return () => {
       active = false;
       clearInterval(timer);
     };
-  }, [client, campaignAddress, state]);
+  }, [client, campaignAddress, state, currentNetwork]);
 
   async function connect() {
     const wallet = wallets[Number(walletIndex)];
     if (!wallet) {
       setWalletError(
-        "No compatible wallet found. Enable a Wallet Standard wallet with localnet and legacy signing support. The CLI demo needs no extension.",
+        `No compatible wallet found. Enable a Wallet Standard wallet with ${currentNetwork} and legacy signing support. The CLI demo needs no extension.`,
       );
       return;
     }
@@ -247,13 +270,13 @@ export function OnchainDemo() {
         setTransaction({
           status: "Pending — approve the transaction in your wallet.",
         });
-        const signed = await signWithWallet(signer, bytes);
+        const signed = await signWithWallet(signer, bytes, currentNetwork);
         signature = await client.broadcast(signed, submitted);
       }
       setTransaction({
         status:
           action === "activate"
-            ? "Confirmed — activation executed on the local validator."
+            ? `Confirmed — activation executed on ${currentNetwork === "localnet" ? "the local validator" : "Solana Devnet"}.`
             : "Confirmed — local test SOL received.",
         signature,
       });
@@ -273,18 +296,34 @@ export function OnchainDemo() {
     <div className="container onchain-page">
       <PageIntro
         eyebrow="SEPARATE BLOCKCHAIN DEMONSTRATION"
-        title="Solana Localnet — Real Program Transactions"
+        title={`Solana ${networkName} — Real Program Transactions`}
       >
         <p>
           Read the deployed escrow and sign a real activation. Tokens and SOL on
-          this disposable validator have no monetary value. The{" "}
+          this test network have no monetary value. The{" "}
           <Link href="/marketplace">original marketplace</Link> remains an
           independent simulation.
         </p>
       </PageIntro>
+      <nav className="chain-buttons" aria-label="Demonstration network">
+        <Link
+          className="button button-outline"
+          href="/onchain-demo?network=devnet"
+          aria-current={currentNetwork === "devnet" ? "page" : undefined}
+        >
+          Solana Devnet
+        </Link>
+        <Link
+          className="button button-outline"
+          href="/onchain-demo?network=localnet"
+          aria-current={currentNetwork === "localnet" ? "page" : undefined}
+        >
+          Local validator
+        </Link>
+      </nav>
       <section className="chain-panel" aria-labelledby="network-heading">
         <div className="chain-panel-heading">
-          <h2 id="network-heading">Local network</h2>
+          <h2 id="network-heading">Solana {networkName}</h2>
           <button
             className="button button-outline"
             disabled={loading || busy}
@@ -296,12 +335,28 @@ export function OnchainDemo() {
         </div>
         <dl className="chain-facts">
           <div>
-            <dt>RPC · local development only</dt>
+            <dt>
+              RPC ·{" "}
+              {currentNetwork === "devnet"
+                ? "public test network"
+                : "local development only"}
+            </dt>
             <dd>{client?.config.rpcUrl || "Invalid configuration"}</dd>
           </div>
           <div>
             <dt>Program ID · generated from Rust</dt>
-            <dd>{PROGRAM_ID}</dd>
+            <dd>{client?.config.programId || "Invalid configuration"}</dd>
+            {currentNetwork === "devnet" && client && (
+              <dd>
+                <a
+                  href={explorerLink("address", client.config.programId)}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Inspect program on Devnet Explorer
+                </a>
+              </dd>
+            )}
           </div>
           {state && (
             <>
@@ -326,13 +381,18 @@ export function OnchainDemo() {
         {!loading && state?.campaigns.length === 0 && (
           <p>
             No campaigns found. Run{" "}
-            <code>bash anchor/scripts/run-linux.sh localnet</code> in WSL to
-            create the real transaction fixtures.
+            <code>
+              {currentNetwork === "devnet"
+                ? "bash anchor/scripts/devnet.sh scenarios"
+                : "bash anchor/scripts/run-linux.sh localnet"}
+            </code>{" "}
+            in WSL to create the real transaction fixtures.
           </p>
         )}
       </section>
       <div className="chain-layout">
         <CampaignPanel
+          network={currentNetwork}
           campaign={campaign}
           state={state}
           busy={busy}
@@ -346,6 +406,7 @@ export function OnchainDemo() {
           onReview={() => setReview(true)}
         />
         <WalletPanel
+          network={currentNetwork}
           connection={connection}
           wallets={wallets}
           walletIndex={walletIndex}
@@ -364,10 +425,12 @@ export function OnchainDemo() {
       <section className="chain-panel" aria-labelledby="history-heading">
         <h2 id="history-heading">Actual campaign transactions</h2>
         <p>
-          Latest confirmed records returned by the local validator. Failed
-          transactions are labeled. Public explorers cannot resolve these
-          localnet signatures. History refreshes every four seconds and can lag
-          account confirmation.
+          Latest confirmed records returned by RPC. Failed transactions are
+          labeled.
+          {currentNetwork === "devnet"
+            ? " Explorer links select Devnet. History refreshes every 15 seconds."
+            : " Public explorers cannot resolve localnet signatures. History refreshes every four seconds."}{" "}
+          Indexing can lag account confirmation.
         </p>
         {historyError && (
           <p role="alert" className="chain-error">
@@ -375,24 +438,42 @@ export function OnchainDemo() {
           </p>
         )}
         {campaign ? (
-          <ol className="chain-history">
-            {history.map((entry) => (
-              <li key={entry.signature}>
-                <span>
-                  {entry.err ? "Failed on-chain" : "Confirmed"} · slot{" "}
-                  {entry.slot.toString()}
-                </span>
-                <code>{entry.signature}</code>
-              </li>
-            ))}
-          </ol>
+          <>
+            {!history.length && !historyError && (
+              <p aria-live="polite">
+                Loading confirmed history. Public RPC indexing can lag; refresh
+                if records remain unavailable.
+              </p>
+            )}
+            <ol className="chain-history">
+              {history.map((entry) => (
+                <li key={entry.signature}>
+                  <span>
+                    {entry.err ? "Failed on-chain" : "Confirmed"} · slot{" "}
+                    {entry.slot.toString()}
+                  </span>
+                  {currentNetwork === "devnet" ? (
+                    <a
+                      href={explorerLink("tx", entry.signature)}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      <code>{entry.signature}</code>
+                    </a>
+                  ) : (
+                    <code>{entry.signature}</code>
+                  )}
+                </li>
+              ))}
+            </ol>
+          </>
         ) : (
           <p>History appears after a campaign is loaded.</p>
         )}
       </section>
       {review && campaign && connection && (
         <Dialog
-          title="Review real localnet activation"
+          title={`Review real ${currentNetwork} activation`}
           onClose={() => setReview(false)}
         >
           <p>
@@ -404,13 +485,13 @@ export function OnchainDemo() {
             <strong>
               {tokenAmount(campaign.instructor_allocation, campaign.decimals)}
             </strong>{" "}
-            local test tokens, together. There are no refunds after activation
-            in this version.
+            valueless test tokens, together. There are no refunds after
+            activation in this version.
           </p>
           <p>
-            Network: localnet. Deadline: {date(campaign.deadline)}. You pay the
-            local SOL transaction fee. The contract rechecks all conditions when
-            executed.
+            Network: {networkName}. Deadline: {date(campaign.deadline)}. You pay
+            the test SOL transaction fee. The contract rechecks all conditions
+            when executed.
           </p>
           <p className="chain-address">Campaign: {campaign.address}</p>
           <p className="chain-address">Signer: {connection.account.address}</p>

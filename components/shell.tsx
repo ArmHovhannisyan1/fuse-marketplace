@@ -68,7 +68,7 @@ export function Header() {
               ...nav,
               ["/my-commitments", "My commitments"],
               ["/create", "Create a demo booking"],
-              ["/onchain-demo", "Solana localnet demo"],
+              ["/onchain-demo", "Solana on-chain demo"],
             ].map(([href, label]) => (
               <Link key={href} href={href} onClick={() => setMenuOpen(false)}>
                 {label}
@@ -82,7 +82,7 @@ export function Header() {
           <FlaskConical size={14} aria-hidden="true" />
           <span>
             {pathname === "/onchain-demo"
-              ? "Solana localnet — real transactions with valueless local test tokens."
+              ? "Solana test networks — real transactions with valueless test tokens."
               : BRAND.notice}
           </span>
           <span className="prototype-extra">
@@ -121,14 +121,14 @@ export function Footer() {
           <Link href="/about">About FUSE</Link>
           <Link href="/create">Create a demo booking</Link>
           <Link href="/my-commitments">My commitments</Link>
-          <Link href="/onchain-demo">Solana localnet demo</Link>
+          <Link href="/onchain-demo">Solana on-chain demo</Link>
         </nav>
       </div>
       <div className="container footer-bottom">
         <span>Built by two siblings. A first hackathon, together.</span>
         <span>
           {pathname === "/onchain-demo"
-            ? "Unaudited · Local validator only · No assets with value"
+            ? "Unaudited · Test networks only · No assets with value"
             : "Prototype · Demo tokens only · Planned for Solana"}
         </span>
       </div>

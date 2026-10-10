@@ -4,7 +4,8 @@ import {
   appendTransactionMessageInstruction,
   compileTransaction,
   lamports,
-  createSolanaRpc,
+  createDefaultRpcTransport,
+  createSolanaRpcFromTransport,
   createTransactionMessage,
   getBase64EncodedWireTransaction,
   getI64Decoder,
@@ -27,11 +28,14 @@ import {
   decodeBase64,
   decodeCampaign,
   localnetConfig,
-  PROGRAM_ID,
+  networkConfig,
+  verifyGenesis,
+  type NetworkConfig,
   TOKEN_PROGRAM,
   activationReason,
   type CampaignData,
 } from "./interface";
+import { pacedDevnetTransport } from "./transport";
 
 export interface ChainCampaign extends CampaignData {
   address: Address;
@@ -61,11 +65,28 @@ const CLOCK = address("SysvarC1ock11111111111111111111111111111111");
 const vaultSeed = ACTIVATION.accounts.find(
   (account) => account.name === "vault",
 )!.pda.seeds[0].value;
-export class LocalnetClient {
-  readonly config = localnetConfig();
-  readonly rpc = createSolanaRpc(this.config.rpcUrl);
+export class EscrowClient {
+  readonly rpc;
+  constructor(readonly config: NetworkConfig = networkConfig()) {
+    // Validate even explicitly supplied configurations before creating transport.
+    this.config = networkConfig(
+      config.rpcUrl,
+      config.programId,
+      config.network,
+    );
+    const transport = createDefaultRpcTransport({ url: this.config.rpcUrl });
+    this.rpc = createSolanaRpcFromTransport(
+      this.config.network === "devnet"
+        ? pacedDevnetTransport(transport)
+        : transport,
+    );
+  }
   private sendOptions() {
-    return { abortSignal: AbortSignal.timeout(10_000) };
+    return {
+      abortSignal: AbortSignal.timeout(
+        this.config.network === "devnet" ? 30_000 : 10_000,
+      ),
+    };
   }
   private async read<T>(label: string, request: Promise<T>): Promise<T> {
     try {
@@ -78,19 +99,17 @@ export class LocalnetClient {
   }
 
   async snapshot(): Promise<Snapshot> {
-    const [program, genesis, clock, accounts] = await Promise.all([
+    const genesis = await this.rpc.getGenesisHash().send(this.sendOptions());
+    verifyGenesis(this.config, genesis);
+    const [program, clock, accounts] = await Promise.all([
       this.read(
         "Read deployed program",
         this.rpc
-          .getAccountInfo(PROGRAM_ID, {
+          .getAccountInfo(this.config.programId, {
             encoding: "base64",
             commitment: "confirmed",
           })
           .send(this.sendOptions()),
-      ),
-      this.read(
-        "Read genesis hash",
-        this.rpc.getGenesisHash().send(this.sendOptions()),
       ),
       this.read(
         "Read validator Clock",
@@ -104,7 +123,7 @@ export class LocalnetClient {
       this.read(
         "Read campaign accounts",
         this.rpc
-          .getProgramAccounts(PROGRAM_ID, {
+          .getProgramAccounts(this.config.programId, {
             encoding: "base64",
             commitment: "confirmed",
             filters: [{ dataSize: BigInt(CAMPAIGN_SIZE) }],
@@ -114,27 +133,17 @@ export class LocalnetClient {
     ]);
     if (!program.value?.executable)
       throw new Error(
-        "FUSE is not deployed at this program ID. Start the validator with the FUSE program loaded.",
+        "FUSE is not deployed at this program ID. Check the selected test network and generated program configuration.",
       );
-    // A loopback RPC could be a proxy for another cluster. Reject known public clusters.
-    if (
-      [
-        "5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
-        "EtWTRABZaYq6iMfeYKouRu166VU2xqa1",
-        "4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z",
-      ].some((hash) => genesis.startsWith(hash))
-    ) {
-      throw new Error("Network mismatch: RPC reports a public Solana cluster.");
-    }
     if (!clock.value) throw new Error("Validator Clock is unavailable.");
     const chainClock = clockDecoder.decode(decodeBase64(clock.value.data[0]));
     const campaigns = await Promise.all(
       accounts.map(async ({ pubkey, account }) => {
-        if (account.owner !== PROGRAM_ID)
+        if (account.owner !== this.config.programId)
           throw new Error("Campaign owner mismatch.");
         const data = decodeCampaign(decodeBase64(account.data[0]));
         const [vault] = await getProgramDerivedAddress({
-          programAddress: PROGRAM_ID,
+          programAddress: this.config.programId,
           seeds: [Uint8Array.from(vaultSeed), addressBytes(pubkey)],
         });
         const balance = await this.rpc
@@ -194,6 +203,10 @@ export class LocalnetClient {
     wallet: Address,
     submitted: (signature: Signature) => void,
   ): Promise<Signature> {
+    if (this.config.network !== "localnet")
+      throw new Error(
+        "Public-network airdrops are disabled. Fund a disposable Devnet wallet manually.",
+      );
     await this.snapshot(); // Explicitly validate local network/program before requesting funds.
     const signature = await this.rpc
       .requestAirdrop(wallet, lamports(1_000_000_000n))
@@ -215,7 +228,7 @@ export class LocalnetClient {
     );
     if (!token)
       throw new Error(
-        "The supplier needs a classic SPL token account for this campaign's mint. Run the localnet fixture script.",
+        "The supplier needs a classic SPL token account for this campaign's mint. Run the corresponding test-network fixture script.",
       );
     return token.pubkey;
   }
@@ -250,7 +263,7 @@ export class LocalnetClient {
       token_program: TOKEN_PROGRAM,
     };
     const instruction: Instruction = {
-      programAddress: PROGRAM_ID,
+      programAddress: this.config.programId,
       data: Uint8Array.from(ACTIVATION.discriminator),
       accounts: ACTIVATION.accounts.map((account) => ({
         address: addresses[account.name],
@@ -295,5 +308,11 @@ export class LocalnetClient {
     submitted(signature);
     await this.confirm(signature);
     return signature;
+  }
+}
+// Preserve the original integration/tests with an explicit loopback-only client.
+export class LocalnetClient extends EscrowClient {
+  constructor() {
+    super(localnetConfig());
   }
 }

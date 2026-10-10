@@ -7,6 +7,7 @@ import type {
 } from "@wallet-standard/features";
 import type { SolanaSignTransactionFeature } from "@solana/wallet-standard-features";
 import { getTransactionDecoder } from "@solana/kit";
+import type { DemoNetwork } from "./interface";
 
 export type LocalWallet = Wallet & {
   features: StandardConnectFeature &
@@ -27,12 +28,16 @@ export function supportedWallets(): LocalWallet[] {
       ].every((feature) => feature in wallet.features),
     );
 }
-export function networkReason(connection: WalletConnection): string | null {
+export function networkReason(
+  connection: WalletConnection,
+  network: DemoNetwork = "localnet",
+): string | null {
+  const chain = `solana:${network}` as const;
   if (
-    !connection.wallet.chains.includes("solana:localnet") ||
-    !connection.account.chains.includes("solana:localnet")
+    !connection.wallet.chains.includes(chain) ||
+    !connection.account.chains.includes(chain)
   ) {
-    return "Wallet network mismatch: select a custom localnet RPC at http://127.0.0.1:8899. This wallet must advertise solana:localnet support.";
+    return `Wallet network mismatch: select ${network === "devnet" ? "Devnet" : "the local validator at http://127.0.0.1:8899"}. This wallet must advertise ${chain} support.`;
   }
   if (
     !connection.account.features.includes("solana:signTransaction") ||
@@ -47,14 +52,15 @@ export function networkReason(connection: WalletConnection): string | null {
 export async function signWithWallet(
   connection: WalletConnection,
   unsigned: Uint8Array,
+  network: DemoNetwork = "localnet",
 ): Promise<Uint8Array> {
-  const reason = networkReason(connection);
+  const reason = networkReason(connection, network);
   if (reason) throw new Error(reason);
   const [output] = await connection.wallet.features[
     "solana:signTransaction"
   ].signTransaction({
     account: connection.account,
-    chain: "solana:localnet",
+    chain: `solana:${network}`,
     transaction: unsigned,
   });
   if (!output) throw new Error("Wallet returned no signed transaction.");
