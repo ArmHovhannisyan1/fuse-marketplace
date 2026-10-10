@@ -7,12 +7,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // IdlBuilder 0.1.4 passes a literal '+{toolchain}' when this variable is set.
     // The pinned rust-toolchain.toml still selects 1.89 for its child Cargo process.
     env::remove_var("RUSTUP_TOOLCHAIN");
+    let mut cargo_args = vec!["--lib".into(), "--locked".into()];
+    if cfg!(feature = "devnet") {
+        cargo_args.extend(["--features".into(), "devnet".into()]);
+    }
     let idl = IdlBuilder::new()
         .program_path(program.clone())
-        .cargo_args(vec!["--lib".into(), "--locked".into()])
+        .cargo_args(cargo_args)
         .build()?;
     assert_eq!(idl.address, fuse_escrow::ID.to_string());
-    let directory = program.parent().unwrap().parent().unwrap().join("idl");
+    let mut directory = program.parent().unwrap().parent().unwrap().join("idl");
+    if cfg!(feature = "devnet") {
+        directory = directory.join("devnet");
+    }
     fs::create_dir_all(&directory)?;
     let json = serde_json::to_string_pretty(&idl)?;
     fs::write(directory.join("fuse_escrow.json"), format!("{json}\n"))?;

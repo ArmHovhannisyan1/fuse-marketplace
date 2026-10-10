@@ -6,8 +6,12 @@ pub mod state;
 use errors::EscrowError;
 use state::*;
 
-// Public local-VM identifier only. No deployment or private key is implied.
+// Keep the established local validator/VM address and its ledger compatible.
+#[cfg(not(feature = "devnet"))]
 declare_id!("25GSneHPbwgwoUNjjcGQ4RoJzJsxETMtZUHNhXWYTf7G");
+// Dedicated upgradeable Devnet deployment; build/IDL commands pass this feature.
+#[cfg(feature = "devnet")]
+declare_id!("6R4NM7PX1jy2E3BhLohh2eoQaF2ubkwW6iNrmgYGViHf");
 
 #[program]
 pub mod fuse_escrow {

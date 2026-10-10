@@ -47,7 +47,7 @@ case "${1:-test}" in
       echo "Build first: bash anchor/scripts/run-linux.sh build" >&2
       exit 1
     fi
-    FUSE_PROGRAM_ID="$(sed -n 's/^declare_id!("\([^"]*\)");/\1/p' programs/fuse-escrow/src/lib.rs)"
+    FUSE_PROGRAM_ID="$(sed -n 's/^declare_id!("\([^"]*\)");/\1/p' programs/fuse-escrow/src/lib.rs | head -n 1)"
     test -n "$FUSE_PROGRAM_ID"
     # A dedicated disposable ledger on Linux's filesystem. No cluster cloning.
     # Reset is explicit, restricted to this path, and never the user's other ledger.

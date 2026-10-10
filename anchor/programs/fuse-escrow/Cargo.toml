@@ -11,6 +11,7 @@ name = "fuse_escrow"
 
 [features]
 default = []
+devnet = []
 cpi = ["no-entrypoint"]
 no-entrypoint = []
 no-idl = []

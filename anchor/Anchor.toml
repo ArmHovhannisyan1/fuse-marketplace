@@ -9,6 +9,9 @@ skip-lint = false
 [programs.localnet]
 fuse_escrow = "25GSneHPbwgwoUNjjcGQ4RoJzJsxETMtZUHNhXWYTf7G"
 
+[programs.devnet]
+fuse_escrow = "6R4NM7PX1jy2E3BhLohh2eoQaF2ubkwW6iNrmgYGViHf"
+
 [provider]
 cluster = "localnet"
 wallet = ".wallets/local-only.json"
