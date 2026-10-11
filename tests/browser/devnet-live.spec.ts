@@ -21,7 +21,9 @@ test("Devnet reads genuine state and exposes real Explorer records after refresh
     "0 valueless Devnet test tokens",
   );
   await expect(
-    page.locator(`a[href*='${proof.success.activationSignature}']`),
+    page
+      .getByRole("region", { name: "Actual campaign transactions" })
+      .locator(`a[href*='${proof.success.activationSignature}']`),
   ).toHaveAttribute(
     "href",
     `https://explorer.solana.com/tx/${proof.success.activationSignature}?cluster=devnet`,

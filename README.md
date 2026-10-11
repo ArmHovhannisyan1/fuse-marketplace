@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  Conditional group bookings, designed for Solana.
+  FUSE coordinates multi-party bookings that activate only when the required funding and supplier approvals are secured.
 </p>
 
 ---
@@ -15,11 +15,23 @@
 > and a local validator; `/onchain-demo` provides a separate RPC-backed wallet experience.
 > **Marketplace: Interactive prototype — simulated funds. No real transactions.**
 > **Devnet / Localnet: real transactions with valueless custom test tokens.**
-> The Devnet program is deployed and upgradeable. No Mainnet transactions,
-> website publication, Git push or merge occurred. This project is unaudited.
+> The Devnet program is deployed and upgradeable. This release preparation does
+> not publish the website, push Git changes, merge or transact on Mainnet. This
+> project is unaudited.
+
+**Frontend demo: NOT DEPLOYED — URL pending.** After manual Vercel deployment,
+replace this placeholder with the actual public URL. The seven-page marketplace
+uses simulated funds; `/onchain-demo` exposes genuine Devnet evidence separately.
 
 [Public Devnet program](https://explorer.solana.com/address/6R4NM7PX1jy2E3BhLohh2eoQaF2ubkwW6iNrmgYGViHf?cluster=devnet)
-· [Three-minute recording guide](docs/demo-recording-guide.md)
+· [Verified transactions](#public-transaction-evidence)
+· [Local setup](#development)
+· [Technical architecture](docs/escrow-architecture.md)
+· [Known limitations](#known-limitations)
+· [Manual Vercel deployment](docs/vercel-deployment.md)
+· [Installed-wallet checklist](docs/manual-wallet-testing.md)
+· [Final technical video script](docs/final-technical-video.md)
+· [Pitch outline](docs/final-pitch-outline.md)
 · [Submission checklist](docs/submission-checklist.md)
 
 ## What is FUSE?
@@ -105,6 +117,8 @@ This project is not audited or ready for production use.
 
 Run these commands **in this repository root**. No nested project directory,
 environment file, API key, wallet extension, or paid service is needed.
+An untracked `install.sh` exists in this checkout; its purpose and safety have not
+been established. It is not part of setup or the release. Do not run or add it.
 
 Use Node.js 22 or later and npm. Clean installation and execution were verified
 on Windows with Node.js **24.21.0** and npm **11.19.0**. Exact dependency versions
@@ -141,7 +155,7 @@ remote image or font dependencies.
 | `/marketplace/[id]` | Contributions, approvals, activation, personal refunds, simulated activity, demo controls                                   |
 | `/create`           | Validated form, review before publication, fixed published terms                                                            |
 | `/my-commitments`   | Current mock identity's seats, deposits, booking and refund status                                                          |
-| `/onchain-demo`     | Actual Devnet state, approvals, escrow balances, wallet-signed activation and Devnet Explorer links; explicit Localnet mode |
+| `/onchain-demo`     | Historical verified Devnet evidence, separate live state, approvals, escrow balances, wallet-signed activation and Explorer links; explicit Localnet mode |
 
 The five seeded bookings are:
 
@@ -263,7 +277,9 @@ refundable **at or after** its deadline, even if fully funded and approved.
 | `anchor/idl/`                                 | Anchor-generated Rust-authoritative IDL and TypeScript interface                                                     |
 | `anchor/programs/fuse-escrow/examples/`       | IDL generation and real local-validator transaction scenarios                                                        |
 | `tests/localnet/`                             | TypeScript decoding and state checks against the deployed program                                                    |
-| `docs/demo-recording-guide.md`                | Real transaction demonstration and evidence checklist                                                                |
+| `components/devnet-proof.tsx`                | Labeled historical Explorer evidence from committed public receipts; independent of live RPC                          |
+| `docs/final-technical-video.md`              | Timed three-minute technical script using actual evidence                                                             |
+| `docs/vercel-deployment.md`                  | Manual dashboard deployment, branch selection, public environment and hosted checks                                   |
 | `docs/escrow-architecture.md`                 | Account design, enforcement, integration boundary and security limits                                                |
 
 The simulated UI invokes the original mock adapter. The separate on-chain page
@@ -552,7 +568,10 @@ so their final original-mint balance is 600, not the historical 800 refund check
 All amounts are integer base units. Public addresses, signatures, slots and expected
 failures are saved in [deployment proof](docs/devnet-deployment.json),
 [scenario proof](docs/devnet-proof.json), and [browser proof](docs/devnet-browser-proof.json).
-The website loads current state from RPC, never from these recording receipts.
+The website loads current state from RPC. Its separate **Verified Devnet evidence ·
+historical** panel links the committed recording receipts and labels their recorded
+amounts. Historical proof remains useful after settlement and during RPC failure;
+it never supplies a fallback for live balances.
 
 ### Verified developer commands
 
@@ -642,8 +661,10 @@ Devnet endpoint: HTTP 200, expected Devnet genesis, and the supplied HTTPS origi
 allowed. Actual browser reads/signing were verified from the local website. A hosted
 origin and installed wallet extension still need manual verification after hosting
 approval. Public RPC may rate-limit or block traffic; no paid RPC or API key is used.
-For Vercel, use the Next.js preset, repository root, npm, Node 22 or newer,
+For Vercel, use the Next.js preset, repository root, npm, Node 24.x,
 `npm run build`, and the public environment above. No external hosting was performed.
+Follow [the manual dashboard guide](docs/vercel-deployment.md), including the
+`solana-implentation` production branch; do not deploy an older default branch.
 
 ### Phase 4 verification
 
@@ -686,14 +707,14 @@ Follow [the three-minute recording guide](docs/demo-recording-guide.md) and
 - FUSE does not guarantee physical workshop delivery after supplier payouts
   or resolve later service disputes.
 - Chrome was tested; Firefox and Safari have not been verified.
-- The full dependency audit reports **five high-severity findings** in the dev-only
-  tooling dependencies. No forced dependency upgrades were performed. Track these advisories;
-  the runtime audit is clean.
+- At the final preparation check on 11 October 2026, both `npm audit` and
+  `npm audit --omit=dev` reported zero vulnerabilities. This supersedes the earlier
+  five dev-tool findings and is an advisory lookup, not a security audit.
 
 ## Next steps toward Solana escrow
 
-1. **Finish submission delivery.** Obtain owner approval for repository push and
-   website hosting, verify the hosted Devnet page and an installed wallet extension,
+1. **Finish submission delivery.** The owner pushes and hosts manually, verifies
+   the hosted Devnet page and an installed wallet extension,
    then record the technical and project videos using the submission checklist.
 2. **Complete participant wallet actions.** Extend the isolated client for campaign
    creation, supplier approvals, attendee deposits and own refunds. Verify a real
@@ -706,14 +727,18 @@ Follow [the three-minute recording guide](docs/demo-recording-guide.md) and
 
 ## Deployment
 
-The verified production build is ready for a standard Next.js-compatible Node
-server using the build/start commands above. No external account is configured
+The verified production build is ready to host a hackathon demonstration on a
+standard Next.js-compatible Node server using the build/start commands above.
+No external account is configured
 and nothing has been published. Retain dynamic App Router support for locally
 created bookings; a static-only export is not configured.
 
 The escrow is loaded and executes on the local validator through genesis loading.
-The separate Devnet build is publicly deployed and upgradeable. External website
-hosting, Git push and merge have not been performed.
+The separate Devnet build is publicly deployed and upgradeable. This release phase
+does not perform external website hosting, Git push or merge.
+See [final release verification](docs/final-release-report.md) for the current
+checks and remaining owner actions. Hosting readiness is not a claim of financial
+production readiness.
 
 ## Team
 

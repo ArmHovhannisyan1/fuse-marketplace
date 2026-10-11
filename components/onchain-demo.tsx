@@ -6,6 +6,7 @@ import { getWallets } from "@wallet-standard/app";
 import { address, type Signature } from "@solana/kit";
 import { RefreshCw } from "lucide-react";
 import { CampaignPanel, WalletPanel } from "./onchain-panels";
+import { DevnetProof } from "./devnet-proof";
 import { Dialog, PageIntro } from "./ui";
 import {
   EscrowClient,
@@ -305,6 +306,7 @@ export function OnchainDemo({ network }: { network?: DemoNetwork }) {
           independent simulation.
         </p>
       </PageIntro>
+      {currentNetwork === "devnet" && <DevnetProof />}
       <nav className="chain-buttons" aria-label="Demonstration network">
         <Link
           className="button button-outline"
@@ -323,7 +325,9 @@ export function OnchainDemo({ network }: { network?: DemoNetwork }) {
       </nav>
       <section className="chain-panel" aria-labelledby="network-heading">
         <div className="chain-panel-heading">
-          <h2 id="network-heading">Solana {networkName}</h2>
+          <h2 id="network-heading">
+            Solana {networkName} · current live state
+          </h2>
           <button
             className="button button-outline"
             disabled={loading || busy}
@@ -333,6 +337,11 @@ export function OnchainDemo({ network }: { network?: DemoNetwork }) {
             {loading ? "Loading RPC…" : "Refresh on-chain state"}
           </button>
         </div>
+        <p>
+          Accounts and balances from the last successful RPC refresh. This
+          snapshot is separate from recorded proof and the simulated
+          marketplace.
+        </p>
         <dl className="chain-facts">
           <div>
             <dt>

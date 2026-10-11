@@ -1,13 +1,19 @@
 # Record the FUSE technical demo in three minutes
 
+Use [the final timed script](final-technical-video.md) for the release recording.
+It defaults to confirmed historical proof and does not depend on a campaign
+remaining activatable. The optional live workflow below needs a fresh ready
+campaign and [manual installed-wallet verification](manual-wallet-testing.md).
+
 Only Devnet SOL and valueless custom SPL tokens are used. No video or hosted
 website has been created automatically. Keep keypair files, wallet recovery
 screens and secret environment files out of the recording.
 
 ## Prepare before recording
 
-1. Obtain owner approval before publishing the repository or website. If hosting
-   is approved, open its actual public URL; otherwise use `http://localhost:3000`
+1. The owner publishes the repository and website manually using
+   [the Vercel guide](vercel-deployment.md). Open its actual public URL when available;
+   otherwise use `http://localhost:3000`
    and say clearly that the website is local while the transactions are public.
 2. Start the verified production website from the repository root:
    ```powershell
@@ -28,7 +34,8 @@ screens and secret environment files out of the recording.
    extension before recording: automated tests used a test-only provider with a
    real ephemeral signer, not an installed extension. Never import the deployment
    authority into the website or attempt to recover discarded CLI fixture keys.
-5. A fresh ready campaign was prepared after the signed browser test. Read only
+5. A ready campaign was prepared after the signed browser test. It is not
+   permanently fresh: read only
    the public `docs/devnet-recording-fixture.json` to identify it. If it was consumed
    or expired, prepare another with the verified command:
    ```powershell

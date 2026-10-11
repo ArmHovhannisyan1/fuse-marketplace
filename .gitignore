@@ -160,3 +160,5 @@ anchor/.toolchain/
 **/*-keypair.json
 anchor/.wallets/
 anchor/localnet/
+**/.wallets/
+**/test-ledger/

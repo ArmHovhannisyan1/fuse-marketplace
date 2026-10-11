@@ -100,6 +100,10 @@ export async function installTestWallet(
       window.addEventListener("wallet-standard:app-ready", (event: Event) => {
         (event as WindowAppReadyEvent).detail.register(wallet);
       });
+      window.addEventListener("fuse-test-wallet-disconnect", () => {
+        connected = false;
+        listeners.forEach((listener) => listener({ accounts: [] }));
+      });
     },
     {
       publicAddress: signer.address,
