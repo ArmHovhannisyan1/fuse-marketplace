@@ -1,0 +1,14 @@
+{
+  "rpc": "https://api.devnet.solana.com",
+  "programId": "6R4NM7PX1jy2E3BhLohh2eoQaF2ubkwW6iNrmgYGViHf",
+  "campaign": "Axvvorsr1BaVNwCet4FBmyYVGTFRqmc2hyea5LSTFtmm",
+  "mint": "DN23AC8vHB9ySZaZnWjpfg8fPduJ7VnToihugpUAGGv2",
+  "venueToken": "5wFcXeMSbYVhMraWGVMsG4fEa1yWocRLgqFKUjkHgExG",
+  "instructorToken": "6HyK93zUomoJAzuDEZtpQcCAkEJmme8kFCgDejLwLMUd",
+  "signer": "3MzKg6V3X3nAgGys3TvVFEwPpWJUgnhQHyJmUmtVLq2S",
+  "signature": "52oem6FJaMA2yfn1LJR9qdetCEuui4Bup5H9GNMDGA59bRBPg1zMV1Rd85Gt2ZcnfEndpKewmCDxEv88DPHC7PXC",
+  "venueDeltaBaseUnits": "80000000",
+  "instructorDeltaBaseUnits": "120000000",
+  "vaultBaseUnits": "0",
+  "wallet": "test-only Wallet Standard provider with an authentic ephemeral Ed25519 signer"
+}

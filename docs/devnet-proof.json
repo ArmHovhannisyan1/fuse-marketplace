@@ -1,0 +1,268 @@
+{
+  "attendee": "ALHGXdPnkMh7e4F87k8Df2HwkKrgMZY4n9LHmXg79xu2",
+  "attendeeToken": "DeKN4kwTGqjs7qa3PLTpzwJqZ27n9nNMiSLYHuVQr9YV",
+  "browserCampaign": "Axvvorsr1BaVNwCet4FBmyYVGTFRqmc2hyea5LSTFtmm",
+  "decimals": 6,
+  "expiry": {
+    "campaign": "iJmKPiLcjdnBjtZ9uG1ZrASP8NXy2vjAs3EAfNhRaEL",
+    "contribution": "HeQFRLvhp8t1AKKDempo4Zvt42s86ZKKVdzzWg6v4QTo",
+    "contributorAfterRefundBaseUnits": 800000000,
+    "deadline": 1791658811,
+    "expiredAt": 1791658812,
+    "refundBaseUnits": 40000000,
+    "refundSignature": "bFfpECuSegdvNPVuRJjvK8BkMdyiu5qWbEDZKTrMCLHNFiDmP4bpYy5RLpkJZz6gxMAaE5Qd5YULnE89B9XvdKu",
+    "status": "FullyRefunded",
+    "vault": "CEnFwWunnwu6AysmJ1wMxovdMuomze8GqwgeecVmQVYP"
+  },
+  "genesisHash": "EtWTRABZaYq6iMfeYKouRu166VU2xqa1wcaWoxPkrZBG",
+  "instructor": "8yJw9NL8JWrrnrjbuHgiyKUFoySXHq4rNY86u6ZTmCMA",
+  "instructorToken": "6HyK93zUomoJAzuDEZtpQcCAkEJmme8kFCgDejLwLMUd",
+  "mint": "DN23AC8vHB9ySZaZnWjpfg8fPduJ7VnToihugpUAGGv2",
+  "organizer": "AtANsRALuku52zwGRihxdLg3irnywKJd6mpq2hnYGJDP",
+  "programId": "6R4NM7PX1jy2E3BhLohh2eoQaF2ubkwW6iNrmgYGViHf",
+  "rpc": "https://api.devnet.solana.com",
+  "success": {
+    "activationSignature": "VupNM2JCgV11zMHxMwugadGpoDLKxY9pb4iEWzPwDoWotnFtnAx2nEiybrUJtbfZcM4N6ua4H82hZ8yMsA1yBHc",
+    "campaign": "27B58GeSQGbAtbud878jTxEcYujxwPycB2kwp4uxD6Fx",
+    "instructorBaseUnits": 120000000,
+    "status": "Activated",
+    "vault": "BcA6kTEeJE6LHsHqrdpxvx123uAoLakHZAjx2QzDqyJq",
+    "vaultBaseUnits": 0,
+    "venueBaseUnits": 80000000
+  },
+  "transactions": [
+    {
+      "error": null,
+      "label": "Fund five disposable test signers with 0.02 Devnet SOL each",
+      "outcome": "confirmed",
+      "signature": "JpqgLUoxF45rk8MK3SNcGHGyjSpjUV4uA5AhtunDWF3jeUzAAw8UEu3CjdguJ7JvoT73WbXSosPJphaYM5AnPiG",
+      "slot": 509638175
+    },
+    {
+      "error": null,
+      "label": "Create six-decimal valueless FUSE demonstration mint",
+      "outcome": "confirmed",
+      "signature": "4CBC6ALViMerHo67ZkDbpiij7rAAZGRTYATsSLCJVkfquf2aktKaa8vBQjsFw4ZULq98Lu69TAXs1BFC61gajNGg",
+      "slot": 509638188
+    },
+    {
+      "error": null,
+      "label": "Create attendee token account",
+      "outcome": "confirmed",
+      "signature": "5Smir8Siu4NbmnSMnGhG9V626vveVzSaPqdmWkMtfuTBG2TA5B4EBc5c6h45ECPJRptqGxRVUW9FYWdwL8TG4ao9",
+      "slot": 509638200
+    },
+    {
+      "error": null,
+      "label": "Create venue token account",
+      "outcome": "confirmed",
+      "signature": "2WVGwTsQd79Bjzq9CnAsEYFY2GzsryCpsdpWtSYamrvc8GqM2vv9MSCjS5hfuxkAKACUt2B1WRdAmpsWKSgTbkBn",
+      "slot": 509638213
+    },
+    {
+      "error": null,
+      "label": "Create instructor token account",
+      "outcome": "confirmed",
+      "signature": "55YKE7XTDXr98Tg7mox1X2VK9Bbbr5czGN5uWrka6h3WUNDXXahrTwZUifZBqzoh27unftCX2yioyrcpL4EWzNXs",
+      "slot": 509638227
+    },
+    {
+      "error": null,
+      "label": "Fund attendee with 1000 valueless test tokens",
+      "outcome": "confirmed",
+      "signature": "2gDRkvsQ7YB1h6qgSBKvggUnbQA786ohXtAykGUCi7gshCa7nts9N7ka8gGtbXMxBJB8XzGefhePryhdGdiAKHFQ",
+      "slot": 509638238
+    },
+    {
+      "error": null,
+      "label": "A: Create successful workshop",
+      "outcome": "confirmed",
+      "signature": "4CzkFFbR8YXEAfqbqhTMXNSscE9Yc4kZpLtfoJh9dqUzWy7u7rDFojQnPSFvoo6o1iKBZGHk7heY7BA5QZCtyVpa",
+      "slot": 509638251
+    },
+    {
+      "error": null,
+      "label": "A: Deposit eight seats",
+      "outcome": "confirmed",
+      "signature": "23vYPTx5Qtkk25QX7yEwmPvbsg3dwc6eCr1mCt7rDY4znxN2idyu5QmiGHRq1Wf6Ud9Mt8xBjJ2Ax6gSUrQYR6is",
+      "slot": 509638272
+    },
+    {
+      "error": null,
+      "label": "A: Deposit final two seats",
+      "outcome": "confirmed",
+      "signature": "64ykrHR6t6Z9BX5YbCAHwKwabnXCipQUvafmr2dzJwHYSVbMbVvDt4ZsNvwBaBw3NzHVDp39rpAXi2pTVShBE8Tz",
+      "slot": 509638284
+    },
+    {
+      "error": {
+        "InstructionError": [
+          1,
+          {
+            "Custom": 6010
+          }
+        ]
+      },
+      "label": "A: Full funding alone cannot activate",
+      "outcome": "rejected on-chain as expected",
+      "signature": "ymb7vd69zD6RfnqcowR7nZQVCXe4QUrNN1zptoAAhnVoxZzRJRgCy1FsqbHLB2XJRiY54uFBwRphreSBnF4sHk7",
+      "slot": 509638297
+    },
+    {
+      "error": {
+        "InstructionError": [
+          1,
+          {
+            "Custom": 6005
+          }
+        ]
+      },
+      "label": "A: Unrelated signer cannot approve venue",
+      "outcome": "rejected on-chain as expected",
+      "signature": "4EqGawoCB3qTJesRW7SshjT2ZyncMLYC3U1mkKAot4zsQ2ciFhpPB2tbsRHRLK7q8wJ8HXaAutJFjZSGpNeXMuuD",
+      "slot": 509638308
+    },
+    {
+      "error": null,
+      "label": "A: Authentic venue approval",
+      "outcome": "confirmed",
+      "signature": "5TLxk2dbHhC1uZ2YxQ61xuHvZNs4aWVLNsnGVHgkUy6a26W6pMM8JTV7cnbAZUGSnbqQuLJ5sZ7PHzYXoYUsX4F7",
+      "slot": 509638321
+    },
+    {
+      "error": {
+        "InstructionError": [
+          1,
+          {
+            "Custom": 6010
+          }
+        ]
+      },
+      "label": "A: Instructor approval still required",
+      "outcome": "rejected on-chain as expected",
+      "signature": "2zu2Y2tkXFUGAk1NfwLfDJVS1W6oxkN1BTyXwFsmBW34x6A8fwRHKJUBuxv6GiFtSLmrzLvcw5dTT2S4WJJPpYGj",
+      "slot": 509638333
+    },
+    {
+      "error": null,
+      "label": "A: Authentic instructor approval",
+      "outcome": "confirmed",
+      "signature": "23RoQ9mXRstbj6kqD1BhGySiDhS8oiPSvnBkEfX2Udpszg3M192eBbwDeNTLnAC79XJJVxEUytht93qKiXynPzD9",
+      "slot": 509638344
+    },
+    {
+      "error": null,
+      "label": "A: Activate and pay suppliers",
+      "outcome": "confirmed",
+      "signature": "VupNM2JCgV11zMHxMwugadGpoDLKxY9pb4iEWzPwDoWotnFtnAx2nEiybrUJtbfZcM4N6ua4H82hZ8yMsA1yBHc",
+      "slot": 509638364
+    },
+    {
+      "error": {
+        "InstructionError": [
+          1,
+          {
+            "Custom": 6007
+          }
+        ]
+      },
+      "label": "A: Repeated activation rejected",
+      "outcome": "rejected on-chain as expected",
+      "signature": "58eVfeAeRBX6aJTr9vKiri8bWsA9HtGFE7sj45T3cnzpQFPQiraijSuzcRGQMkLA19wfvU59t4xQ81ezmRxbYMDa",
+      "slot": 509638389
+    },
+    {
+      "error": null,
+      "label": "B: Create short-deadline workshop",
+      "outcome": "confirmed",
+      "signature": "4KyLSUEjAHupm3fo9wZYNTKr9BbxrTWzmTubPULocdM9SSjgBRaDY1TbBstFJRLX5XaEpkqR2fvgQW83y6tBFsce",
+      "slot": 509638412
+    },
+    {
+      "error": null,
+      "label": "B: Deposit two seats",
+      "outcome": "confirmed",
+      "signature": "51XSMdoEh4YRsxbhioYurxFYsSGpgBTz7JpDHCTKVHtk89B4eZbbwm5F8u3Q7oxQDs1G6iWqkbEXaTyzoBngfTns",
+      "slot": 509638425
+    },
+    {
+      "error": {
+        "InstructionError": [
+          1,
+          {
+            "Custom": 6008
+          }
+        ]
+      },
+      "label": "B: Activation after deadline rejected",
+      "outcome": "rejected on-chain as expected",
+      "signature": "dehGuZ4EpB6A2sKTPdatmVK5ZvyJTSLakr6iPGiJGNoWTxWMHo1tFTdHN2kzv6NeCcUiGQLQFxdBDQY38fbr79Y",
+      "slot": 509638788
+    },
+    {
+      "error": null,
+      "label": "B: Contributor claims own refund",
+      "outcome": "confirmed",
+      "signature": "bFfpECuSegdvNPVuRJjvK8BkMdyiu5qWbEDZKTrMCLHNFiDmP4bpYy5RLpkJZz6gxMAaE5Qd5YULnE89B9XvdKu",
+      "slot": 509638799
+    },
+    {
+      "error": {
+        "InstructionError": [
+          1,
+          {
+            "Custom": 6014
+          }
+        ]
+      },
+      "label": "B: Repeated refund rejected",
+      "outcome": "rejected on-chain as expected",
+      "signature": "TQUxKL5ULBWbFQLdSSmFmSh8BiQTRF1meTNqB27dJLP2tUdaUAUTsUjqrBS3wJqV6SWMPKkMfncb8icoujtyBo8",
+      "slot": 509638818
+    },
+    {
+      "error": {
+        "InstructionError": [
+          1,
+          {
+            "Custom": 6007
+          }
+        ]
+      },
+      "label": "B: Activation after refund rejected",
+      "outcome": "rejected on-chain as expected",
+      "signature": "2mVPfvBnbHxzvQMQmvYmE657quetkoL2QFFBk3UctxpEqN1NfzrMYCb7aok5RKVt8UVC8cLmF3UQuiRDiPLjkH7n",
+      "slot": 509638832
+    },
+    {
+      "error": null,
+      "label": "Prepare browser workshop",
+      "outcome": "confirmed",
+      "signature": "52MmfA6m3GTL6JLd92WJvCsV2ap75KBU2A2Q6MQ2qe9xbJhaRbnyqN9ydJH9e9nWJp9DZgpBKXCa2wStQRXugx8Z",
+      "slot": 509638842
+    },
+    {
+      "error": null,
+      "label": "Fund browser workshop",
+      "outcome": "confirmed",
+      "signature": "4XabUq9abKVkMqqQgbJ3DDwdBhNGr7cjdjFabrjBks8sARErfBbrsgdwjkC8LX8J6xUnwr5kbFWpKbpM5FFGDdbo",
+      "slot": 509638852
+    },
+    {
+      "error": null,
+      "label": "Approve browser venue",
+      "outcome": "confirmed",
+      "signature": "59wsPR5vgEyfaDK4f2EwCPFgQ793ex1bxf7RKfon49DrT8rd7qnLmA5jA5CiUuHRSAgmx1wifL5yj2EayZhkrRUy",
+      "slot": 509638864
+    },
+    {
+      "error": null,
+      "label": "Approve browser instructor",
+      "outcome": "confirmed",
+      "signature": "4GJ2jG26K6kY1XfU4PMpZ1huFiQQhzUh26TyGVCQoL9RthK9MBjRfZ9YSdNcQQBCe91dfkd97niAQjUVvuyphjR7",
+      "slot": 509638880
+    }
+  ],
+  "venue": "Fwq6aw1eHwAQF7muZYm3pwnA54dqCzfSSr9G95RiFcBW",
+  "venueToken": "5wFcXeMSbYVhMraWGVMsG4fEa1yWocRLgqFKUjkHgExG"
+}

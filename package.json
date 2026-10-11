@@ -2,7 +2,7 @@
   "name": "fuse-marketplace",
   "version": "0.1.0",
   "private": true,
-  "description": "Conditional group bookings, designed for Solana. Interactive frontend prototype with simulated funds.",
+  "description": "Multi-party bookings that activate when funding and supplier approvals are secured. Simulated marketplace and real Solana Devnet escrow prototype.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -10,12 +10,21 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test": "vitest run",
-    "test:browser": "playwright test"
+    "test:browser": "playwright test",
+    "test:browser:onchain": "playwright test --config playwright.localnet.config.ts",
+    "test:localnet": "vitest run --config vitest.localnet.config.mts",
+    "test:devnet": "vitest run --config vitest.devnet.config.mts",
+    "test:browser:devnet": "playwright test --config playwright.devnet.config.ts"
   },
   "engines": {
     "node": ">=22.0.0"
   },
   "dependencies": {
+    "@solana/kit": "8.4.0",
+    "@solana/wallet-standard-features": "1.5.0",
+    "@wallet-standard/app": "1.1.1",
+    "@wallet-standard/base": "1.1.1",
+    "@wallet-standard/features": "1.1.1",
     "lucide-react": "1.52.0",
     "next": "16.4.0",
     "react": "19.3.0",

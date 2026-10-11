@@ -1,0 +1,14 @@
+{
+  "rpc": "https://api.devnet.solana.com",
+  "genesisHash": "EtWTRABZaYq6iMfeYKouRu166VU2xqa1wcaWoxPkrZBG",
+  "programId": "6R4NM7PX1jy2E3BhLohh2eoQaF2ubkwW6iNrmgYGViHf",
+  "owner": "BPFLoaderUpgradeab1e11111111111111111111111",
+  "programdataAddress": "2Mi1GWm9Lqw2pSj5Uojcnvy4cUuUbbUz5HryvVYn5kj6",
+  "authority": "HMpDsysi8eCv6w3HQh1xYiXkg2diJXXpbCzxAt1gXzBC",
+  "lastDeploySlot": 509637821,
+  "dataLen": 343184,
+  "lamports": 1744253560,
+  "signature": "5JoTAUChKTfKi2ZdApjWZc6DconJC7JQ5jTqS4xw1sELWyLTMpMLDpEQotDNjxtHVUxpbmiWJ6tNAE6pSDKFRkMF",
+  "rebuiltAndDownloadedSha256": "45337798c79006bfc9f85531b8ff2c668e19a9f998cd0ee73b35ee6d6323203d",
+  "verification": "solana program show confirmed matching upgrade authority; solana program dump and cmp verified exact rebuilt bytecode"
+}
