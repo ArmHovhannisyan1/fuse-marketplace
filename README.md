@@ -13,15 +13,15 @@
 > **Project status:** The original seven-page marketplace remains an interactive
 > simulation. The Anchor escrow executes real signed transactions on **Solana Devnet**
 > and a local validator; `/onchain-demo` provides a separate RPC-backed wallet experience.
-> **Marketplace: Interactive prototype — simulated funds. No real transactions.**
+> **Marketplace demo — simulated funds. No Solana transactions.**
 > **Devnet / Localnet: real transactions with valueless custom test tokens.**
-> The Devnet program is deployed and upgradeable. This release preparation does
-> not publish the website, push Git changes, merge or transact on Mainnet. This
-> project is unaudited.
+> The Devnet program is deployed and upgradeable. The owner merged the development
+> branch into `main` and published the website. This project is unaudited.
 
-**Frontend demo: NOT DEPLOYED — URL pending.** After manual Vercel deployment,
-replace this placeholder with the actual public URL. The seven-page marketplace
-uses simulated funds; `/onchain-demo` exposes genuine Devnet evidence separately.
+**Public frontend: [fuse-marketplace.vercel.app](https://fuse-marketplace.vercel.app/).**
+The seven-page marketplace uses simulated funds; `/onchain-demo` exposes genuine
+Devnet evidence separately. Hosted UI and read-only Devnet checks passed on
+11 October 2026. Installed wallet extensions still need manual testing.
 
 [Public Devnet program](https://explorer.solana.com/address/6R4NM7PX1jy2E3BhLohh2eoQaF2ubkwW6iNrmgYGViHf?cluster=devnet)
 · [Verified transactions](#public-transaction-evidence)
@@ -33,6 +33,9 @@ uses simulated funds; `/onchain-demo` exposes genuine Devnet evidence separately
 · [Final technical video script](docs/final-technical-video.md)
 · [Pitch outline](docs/final-pitch-outline.md)
 · [Submission checklist](docs/submission-checklist.md)
+· [Beginner user testing guide](docs/FUSE-USER-TESTING-GUIDE.md)
+· [Three-minute live demo playbook](docs/FUSE-LIVE-DEMO-PLAYBOOK.md)
+· [Two-person QA checklist](docs/FUSE-FINAL-QA-CHECKLIST.md)
 
 ## What is FUSE?
 
@@ -146,15 +149,15 @@ remote image or font dependencies.
 
 ## Available routes
 
-| Route               | Working functionality                                                                                                       |
-| ------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| `/`                 | Product explanation, shared workshop preview, featured demo listings, FAQ                                                   |
-| `/how-it-works`     | Workshop terms, participant responsibilities, activation and refunds                                                        |
-| `/about`            | Mission, honest team introduction, scope and limitations                                                                    |
-| `/marketplace`      | Five seeded scenarios, title search, status filters, empty state                                                            |
-| `/marketplace/[id]` | Contributions, approvals, activation, personal refunds, simulated activity, demo controls                                   |
-| `/create`           | Validated form, review before publication, fixed published terms                                                            |
-| `/my-commitments`   | Current mock identity's seats, deposits, booking and refund status                                                          |
+| Route               | Working functionality                                                                                                                                     |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/`                 | Product explanation, shared workshop preview, featured demo listings, FAQ                                                                                 |
+| `/how-it-works`     | Workshop terms, participant responsibilities, activation and refunds                                                                                      |
+| `/about`            | Mission, honest team introduction, scope and limitations                                                                                                  |
+| `/marketplace`      | Five seeded scenarios, title search, status filters, empty state                                                                                          |
+| `/marketplace/[id]` | Contributions, approvals, activation, personal refunds, simulated activity, demo controls                                                                 |
+| `/create`           | Validated form, review before publication, fixed published terms                                                                                          |
+| `/my-commitments`   | Current mock identity's seats, deposits, booking and refund status                                                                                        |
 | `/onchain-demo`     | Historical verified Devnet evidence, separate live state, approvals, escrow balances, wallet-signed activation and Explorer links; explicit Localnet mode |
 
 The five seeded bookings are:
@@ -192,6 +195,13 @@ not team members or customer claims.
 
 Sam already has two seeded seats; after this flow, Sam has four seats and an
 80 demo token contribution. The new commitment costs only 40 demo tokens.
+
+Sam's **available** starting balance is **800**, not 1,000: the five seeded
+40-token contributions have already been deducted from the original 1,000.
+In a separate reset-based refund test, adding one 20-token seat leaves 780;
+claiming Clay's seeded 40 plus the new 20 returns 60 and leaves **840**.
+The remaining 160 consists of 120 in other unsettled bookings and 40 already
+paid through the seeded Botanical sketchbook activation. Tokens are conserved.
 
 ### Expiry and refunds
 
@@ -251,8 +261,9 @@ refundable **at or after** its deadline, even if fully funded and approved.
   Supplier names are display labels, not verified wallets.
 - Deposits, approvals, balance changes, and payouts are local updates. They do not
   secure actual funds or confirm any blockchain transaction.
-- Activity is seeded or generated locally and labeled simulated. There are no
-  fake hashes, explorer links, deployed-contract claims, or invented audits.
+- Marketplace activity is seeded or generated locally and labeled simulated.
+  Its receipts are local records, not blockchain transaction evidence. Genuine
+  Devnet signatures are shown separately on `/onchain-demo`.
 - Time is deliberately frozen and simulated, independent of your computer's clock.
 
 ## Code structure
@@ -277,9 +288,9 @@ refundable **at or after** its deadline, even if fully funded and approved.
 | `anchor/idl/`                                 | Anchor-generated Rust-authoritative IDL and TypeScript interface                                                     |
 | `anchor/programs/fuse-escrow/examples/`       | IDL generation and real local-validator transaction scenarios                                                        |
 | `tests/localnet/`                             | TypeScript decoding and state checks against the deployed program                                                    |
-| `components/devnet-proof.tsx`                | Labeled historical Explorer evidence from committed public receipts; independent of live RPC                          |
-| `docs/final-technical-video.md`              | Timed three-minute technical script using actual evidence                                                             |
-| `docs/vercel-deployment.md`                  | Manual dashboard deployment, branch selection, public environment and hosted checks                                   |
+| `components/devnet-proof.tsx`                 | Labeled historical Explorer evidence from committed public receipts; independent of live RPC                         |
+| `docs/final-technical-video.md`               | Timed three-minute technical script using actual evidence                                                            |
+| `docs/vercel-deployment.md`                   | Manual dashboard deployment, branch selection, public environment and hosted checks                                  |
 | `docs/escrow-architecture.md`                 | Account design, enforcement, integration boundary and security limits                                                |
 
 The simulated UI invokes the original mock adapter. The separate on-chain page
@@ -658,13 +669,15 @@ configuration and should not be used for a public HTTPS website.
 
 Production build/start passed. HTTPS-origin CORS was checked against the canonical
 Devnet endpoint: HTTP 200, expected Devnet genesis, and the supplied HTTPS origin
-allowed. Actual browser reads/signing were verified from the local website. A hosted
-origin and installed wallet extension still need manual verification after hosting
-approval. Public RPC may rate-limit or block traffic; no paid RPC or API key is used.
+allowed. Actual browser reads/signing were verified from the local website. On
+11 October 2026, the public hosted origin also passed read-only Devnet browser checks.
+Installed wallet extensions still need manual verification. Public RPC may rate-limit
+or block traffic; no paid RPC or API key is used.
 For Vercel, use the Next.js preset, repository root, npm, Node 24.x,
-`npm run build`, and the public environment above. No external hosting was performed.
-Follow [the manual dashboard guide](docs/vercel-deployment.md), including the
-`solana-implentation` production branch; do not deploy an older default branch.
+`npm run build`, and the public environment above. The owner subsequently deployed
+the website after merging `solana-implentation` into `main`.
+The [manual dashboard guide](docs/vercel-deployment.md) now uses `main` for future
+owner-managed deployments. Rehearsing or testing does not require a redeployment.
 
 ### Phase 4 verification
 

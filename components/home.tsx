@@ -281,8 +281,11 @@ export function Home() {
           <div className="future-note">
             <Sparkles size={18} aria-hidden="true" />
             <p>
-              <strong>Working today: an interactive local demo.</strong>{" "}
-              {BRAND.solana} No smart contract is deployed in this prototype.
+              <strong>
+                Working today: marketplace simulation and Devnet escrow.
+              </strong>{" "}
+              The marketplace uses demo tokens saved in browser storage.{" "}
+              {BRAND.solana}
             </p>
           </div>
         </div>

@@ -129,7 +129,7 @@ export function Footer() {
         <span>
           {pathname === "/onchain-demo"
             ? "Unaudited · Test networks only · No assets with value"
-            : "Prototype · Demo tokens only · Planned for Solana"}
+            : "Marketplace simulation · Devnet escrow deployed"}
         </span>
       </div>
     </footer>

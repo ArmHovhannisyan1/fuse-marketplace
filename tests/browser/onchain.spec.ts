@@ -25,7 +25,7 @@ test("unavailable local RPC and missing wallet never show simulated funds", asyn
   );
   await expect(
     page.getByText(
-      "Interactive prototype — simulated funds. No real transactions.",
+      "Marketplace demo — simulated funds. No Solana transactions.",
       { exact: true },
     ),
   ).toHaveCount(0);

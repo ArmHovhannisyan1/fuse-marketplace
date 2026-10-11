@@ -1,13 +1,18 @@
 # Deploy FUSE through the Vercel dashboard
 
-The owner performs these steps. This preparation does not connect accounts or
-publish anything. The website needs no private key, database, paid RPC or Rust
-build on Vercel. Use the existing branch `solana-implentation` (spelling preserved).
+The owner has already published **https://fuse-marketplace.vercel.app/** and merged
+`solana-implentation` into `main`. Hosted UI and read-only Devnet tests passed on
+11 October 2026. Use the [user testing guide](FUSE-USER-TESTING-GUIDE.md) and
+[recording playbook](FUSE-LIVE-DEMO-PLAYBOOK.md) without redeploying.
+
+The steps below are for a future owner-managed deployment. This document does not
+connect accounts or publish anything. The website needs no private key, database,
+paid RPC or Rust build on Vercel. The current release branch is `main`.
 
 1. Push the reviewed release from the repository root:
    ```powershell
    git status --short
-   git push origin solana-implentation
+   git push origin main
    ```
    Leave the untracked `install.sh` out of Git. Do not run it.
 2. Sign in to Vercel yourself. Choose **Add New → Project**, connect your GitHub
@@ -39,11 +44,11 @@ build on Vercel. Use the existing branch `solana-implentation` (spelling preserv
    them, redeploy; saving a variable alone does not update an existing bundle.
    Never add wallet keys or secret RPC credentials.
    [Environment variable settings](https://vercel.com/docs/environment-variables).
-5. Check which branch Vercel will deploy. Its default may be `main`, which can
-   contain older code. If the import screen offers a branch selector, choose
-   `solana-implentation`. Otherwise finish creating the project, then open
+5. Check which branch Vercel will deploy. The development release is now merged
+   into `main`. If the import screen offers a branch selector, choose `main`.
+   Otherwise finish creating the project, then open
    **Settings → Environments → Production → Branch Tracking**, enter
-   `solana-implentation`, and save. In **Deployments → Create Deployment**, enter
+   `main`, and save. In **Deployments → Create Deployment**, enter
    that Git branch and deploy it. Confirm the resulting deployment's commit
    matches `git rev-parse HEAD`. Do not merge or create a branch for this step.
    [Production branch and Git-reference deployments](https://vercel.com/docs/git).
@@ -55,8 +60,9 @@ build on Vercel. Use the existing branch `solana-implentation` (spelling preserv
    `/onchain-demo` on mobile and desktop. On the last page, confirm **Solana
    Devnet**, the program ID, historical Explorer links, and current RPC state.
    Follow [the installed-wallet checklist](manual-wallet-testing.md).
-8. Replace **Frontend demo: NOT DEPLOYED — URL pending** in README with the actual
-   public URL. Record that URL and the tested commit in your submission.
+8. Check that README and your submission use the actual public URL. Record that URL
+   and confirm the deployed commit in Vercel. The current URL is
+   **https://fuse-marketplace.vercel.app/**.
 
 The default hosted flow uses HTTPS Devnet RPC. The explicit **Local validator**
 link is a development option requiring a validator on the visitor's machine;
