@@ -46,8 +46,9 @@ export default function AboutPage() {
             instructor all need to commit before the booking can move forward.
           </p>
           <p>
-            Our first milestone is a clear website and a working interactive
-            demo. The next step is to bring the same conditions to Solana.
+            The marketplace provides an interactive local simulation. A separate
+            Solana Devnet demonstration runs the same escrow conditions
+            on-chain.
           </p>
         </div>
       </section>
@@ -65,9 +66,8 @@ export default function AboutPage() {
           <Layers3 size={24} aria-hidden="true" />
           <h2>Honest about what works.</h2>
           <p>
-            This prototype uses demo tokens and local browser state.{" "}
-            {BRAND.solana} There is no deployed contract, live escrow, or real
-            wallet transaction yet.
+            The main marketplace is an interactive simulation using demo tokens
+            and localStorage in your browser. {BRAND.solana}
           </p>
         </article>
       </section>

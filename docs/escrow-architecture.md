@@ -108,7 +108,7 @@ Expiry uses a controlled 15-second deadline and bounded polling of the actual
 validator Clock. It does not warp the mock clock, change program rules, or blindly
 sleep and assume expiry. See the [recording guide](demo-recording-guide.md).
 
-## Future frontend integration boundary
+## Current on-chain adapter and remaining marketplace integration
 
 `lib/demo-store.ts` remains the simulation adapter. `lib/solana/` is separate:
 
@@ -126,10 +126,10 @@ sleep and assume expiry. See the [recording guide](demo-recording-guide.md).
   returned signature, and waits for confirmation. No production signing key or
   automatic fixture signer is supplied to the page.
 
-The browser's real action is permissionless activation, paid for and signed by
+The separate `/onchain-demo` browser page supports permissionless activation, paid for and signed by
 the connected caller. Supplier approvals in the fixture were already signed by
 the designated CLI wallets. Deposits, creation, supplier approvals and refunds
-still need wallet UI; the real runner already demonstrates those instructions.
+currently require developer scripts; their browser wallet UI is not implemented.
 The simulation's role selector authorizes nothing on-chain.
 
 | Existing UI command           | Future program instruction / account read                                           |

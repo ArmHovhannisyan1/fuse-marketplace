@@ -3,9 +3,9 @@ export const BRAND = {
   tagline: "Commit together. Make it happen.",
   explanation:
     "Bring people, funding, and suppliers into one conditional booking. It moves forward only when every requirement is met.",
-  notice: "Interactive prototype — simulated funds. No real transactions.",
+  notice: "Marketplace demo — simulated funds. No Solana transactions.",
   solana:
-    "The planned Solana integration will enforce deposits, supplier approvals, activation, and refunds through a smart contract.",
+    "An unaudited escrow smart contract is deployed on Solana Devnet with valueless test tokens. The separate /onchain-demo shows genuine historical Devnet transactions and live RPC state. Browser activation is supported; creation, deposits, supplier approvals, and refunds require developer scripts.",
 };
 export const FAQ = [
   [
@@ -29,7 +29,7 @@ export const FAQ = [
     "No. FUSE coordinates booking formation and payment conditions. This version does not guarantee a physical workshop happens after suppliers are paid, and it does not resolve later disputes.",
   ],
   [
-    "Do I need a wallet for this demo?",
-    "No wallet, account, or extension is needed. Use the demo controls to explore mock participant roles. Those controls are a demonstration, not real authentication. All amounts are demo tokens stored locally in your browser.",
+    "Do I need a wallet for the marketplace demo?",
+    "No wallet is needed for the marketplace simulation. Use Demo controls to explore mock roles; this is not real authentication. Its demo tokens are saved locally in your browser. The separate /onchain-demo can show real Devnet evidence without a wallet; signing a real activation requires a compatible wallet.",
   ],
 ];

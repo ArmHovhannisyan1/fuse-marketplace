@@ -216,7 +216,7 @@ for (const width of [375, 768, 1440]) {
       expect(response?.status()).toBe(200);
       await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
       await expect(page.locator(".prototype-strip")).toContainText(
-        "simulated funds. No real transactions.",
+        "Marketplace demo — simulated funds. No Solana transactions.",
       );
       await page.screenshot({
         path: testInfo.outputPath(
